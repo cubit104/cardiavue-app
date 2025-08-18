@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Details - Medtronic{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-user me-2"></i>Patient Details</h2>
+    <div>
+        <button class="btn btn-secondary" onclick="window.history.back()">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </button>
+    </div>
+</div>
+
+<!-- Patient Info -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card card-custom">
+            <div class="card-body" id="patient-info">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sessions History -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5><i class="fas fa-history me-2"></i>Session History</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="sessions-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Device</th>
+                        <th>Parameters</th>
+                        <th>Measurements</th>
+                        <th>Episodes</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="sessions-tbody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let patientData = null;
+let patientId = '{{ patient_id }}';
+
+async function loadPatientData() {
+    try {
+        const response = await fetch(`/api/patient/${patientId}`);
+        patientData = await response.json();
+        
+        renderPatientInfo();
+        renderSessionsTable();
+    } catch (error) {
+        console.error('Error loading patient data:', error);
+    }
+}
+
+function renderPatientInfo() {
+    const info = document.getElementById('patient-info');
+    const patient = patientData.patient;
+    
+    info.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="fas fa-user me-2"></i>Patient Information</h5>
+                <p><strong>Name:</strong> ${patient.patient_name}</p>
+                <p><strong>Date of Birth:</strong> ${patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'N/A'}</p>
+                <p><strong>Physician:</strong> ${patient.physician_name || 'N/A'}</p>
+                <p><strong>MRN:</strong> ${patient.medical_record_number || 'N/A'}</p>
+            </div>
+            <div class="col-md-6">
+                <h5><i class="fas fa-chart-line me-2"></i>Session Summary</h5>
+                <p><strong>Total Sessions:</strong> ${patientData.sessions.length}</p>
+                <p><strong>Latest Session:</strong> ${patientData.sessions.length > 0 ? new Date(patientData.sessions[0].interrogation_date).toLocaleDateString() : 'N/A'}</p>
+            </div>
+        </div>
+    `;
+}
+
+function renderSessionsTable() {
+    const tbody = document.getElementById('sessions-tbody');
+    
+    if (patientData.sessions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No sessions found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = patientData.sessions.map(session => `
+        <tr>
+            <td>${new Date(session.interrogation_date).toLocaleDateString()}</td>
+            <td>${session.device_model}</td>
+            <td><span class="badge bg-primary">${session.parameters_count}</span></td>
+            <td><span class="badge bg-info">${session.measurements_count}</span></td>
+            <td><span class="badge bg-warning">${session.episodes_count}</span></td>
+            <td><span class="badge bg-success">${session.processing_status}</span></td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="viewSession('${session.session_id}')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function viewSession(sessionId) {
+    window.location.href = `/session/${sessionId}`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatientData();
+});
+</script>
+{% endblock %}

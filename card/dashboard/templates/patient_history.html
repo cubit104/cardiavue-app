@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient History - {{ patient_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .patient-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .sessions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .sessions-table th {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        .sessions-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+        
+        .sessions-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .session-latest {
+            background: #e7f3ff !important;
+            border-left: 4px solid #007bff;
+        }
+        
+        .badge {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+        
+        .badge-success { background: #28a745; }
+        .badge-warning { background: #ffc107; color: #212529; }
+        .badge-danger { background: #dc3545; }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.875em;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .actions {
+            margin-top: 20px;
+            padding: 15px 0;
+        }
+        
+        .session-number {
+            font-weight: bold;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Patient Header -->
+        <div class="patient-header">
+            <h1>📋 Patient Session History</h1>
+            <h2>{{ patient_name }}</h2>
+            <p><strong>Patient ID:</strong> {{ patient_id }} | <strong>Total Sessions:</strong> {{ sessions|length }}</p>
+        </div>
+        
+        <!-- Sessions Table -->
+        <table class="sessions-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>📅 Date</th>
+                    <th>⏰ Uploaded</th>
+                    <th>🔧 Device</th>
+                    <th>📋 Type</th>
+                    <th>📄 File</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                <tr class="{% if loop.first %}session-latest{% endif %}">
+                    <td>
+                        <span class="session-number">
+                            {% if loop.first %}
+                                <span class="badge">LATEST</span>
+                            {% else %}
+                                {{ sessions|length - loop.index0 }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    
+                    <td>
+                        <strong>{{ session.interrogation_date.strftime('%Y-%m-%d') if session.interrogation_date else 'Unknown' }}</strong>
+                        {% if loop.first %}<br><small style="color: #007bff;">Most Recent</small>{% endif %}
+                    </td>
+                    
+                    <td>
+                        {{ session.created_at.strftime('%m/%d %H:%M') if session.created_at else 'Unknown' }}
+                    </td>
+                    
+                    <td>
+                        {{ session.device_model or 'Unknown' }}
+                    </td>
+                    
+                    <td>
+                        {{ session.session_type or 'Follow-up' }}
+                    </td>
+                    
+                    <td>
+                        <small>{{ (session.pdf_filename or 'Unknown')[:20] }}{% if session.pdf_filename and session.pdf_filename|length > 20 %}...{% endif %}</small>
+                    </td>
+                    
+                    <td>
+                        {% set status = session.processing_status or 'complete' %}
+                        <span class="badge {% if status == 'complete' %}badge-success{% elif status == 'processing' %}badge-warning{% elif status == 'error' %}badge-danger{% endif %}">
+                            {{ status.title() }}
+                        </span>
+                    </td>
+                    
+                    <td>
+                        <a href="/session/{{ session.session_id }}" class="btn btn-primary">
+                            {% if loop.first %}View Latest{% else %}View{% endif %}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Actions -->
+        <div class="actions">
+            <a href="/" class="btn btn-secondary">← Back to Patient List</a>
+            <a href="/upload" class="btn btn-primary" style="margin-left: 10px;">+ Upload New Session</a>
+        </div>
+    </div>
+</body>
+</html>

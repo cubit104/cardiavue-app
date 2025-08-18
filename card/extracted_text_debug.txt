@@ -1,0 +1,54 @@
+FULL EXTRACTED TEXT FROM ICD.PDF
+==================================================
+
+
+--- Page 1 ---
+Quick Look II
+Device: Evera MRI™ XT DR DDMB1D4 Serial Number: PFZ214965H Date of Interrogation: 19-Jun-2025 19:55:18
+Patient: PETERSON, MURPHY Physician: Anthony Johnson 717-217-6944
+History: Primary Prevention, AT/AF + Normal Sinus, Normal AV Conduction, NYHA Class II
+Device Status (Implanted: 29-Aug-2016)
+Remaining Longevity 19 months (19-Jun-2025)
+(based on initial interrogation)
+Atrial(5076) RV(6935M)
+Pacing Impedance 456 ohms 399 ohms
+Defibrillation Impedance RV=71 ohms
+Capture Threshold 0.750 V @ 0.40 ms 0.750 V @ 0.40 ms
+Measured On 19-Jun-2025 19-Jun-2025
+Programmed Amplitude/Pulse Width 1.50 V / 0.40 ms 2.00 V / 0.40 ms
+Measured P/ R Wave 0.8 mV 6.3 mV
+Programmed Sensitivity 0.15 mV 0.30 mV
+Parameter Summary
+Mode AAI<=>DDD Lower Rate 60 bpm Paced AV 180 ms
+Mode Switch 171 bpm Upper Track 130 bpm Sensed AV 150 ms
+Upper Sensor 130 bpm
+Detection Rates Therapies
+AT/AF Monitor >171 bpm All Rx Off
+VF On >200 bpm ATP During Charging, 35J x 6
+FVT via VF 200-231 bpm Burst(3), 25J, 35J x 4
+VT OFF All Rx Off
+Enhancements On: VT Monitor, AF/Afl, Sinus Tach, Wavelet, TWave, Noise(Timeout)
+Clinical Status Since 28-Mar-2025 Cardiac Compass Trends (Apr-2024 to Jun-2025)
+Treated
+VF 0
+FVT 0
+VT (Off)
+AT/AF(Monitor)
+Monitored
+VT (140-200 bpm) 0
+VT-NS (>4 beats, >200 bpm) 0
+High Rate-NS 0
+SVT: VT/VF Rx Withheld 0
+V. Oversensing-TWave Rx Withheld 0
+V. Oversensing-Noise Rx Withheld 0
+AT/AF 0
+Time in AT/AF <0.1 hr/day (<0.1%)
+Functional Last Week
+Patient Activity 0.7 hr/day
+Therapy Summary VT/VF AT/AF Pacing (% of Time Since 28-Mar-2025)
+Pace-Terminated Episodes 0 0 Total VP 0.2%(MVP On)
+Shock-Terminated Episodes 0 0 AS-VS 90.2%
+Total Shocks 0 0 AS-VP 0.1%
+Aborted Charges 0 0 AP-VS 9.6%
+Medtronic CareLink Network Confidential Patient Information 19-Jun-2025 19:04:32
+Copyright © 2001-2025 Medtronic, Inc Page 1

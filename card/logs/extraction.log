@@ -1,0 +1,93 @@
+2025-08-17 18:37:15 | INFO     | __main__:main:47 - 🔍 Extracting data from icd2.pdf
+2025-08-17 18:37:15 | INFO     | src.extractors.pdf_parser:extract_all:30 - ✅ Extracted data from icd2.pdf
+2025-08-17 18:37:15 | INFO     | src.extractors.medtronic_parser:_parse_device_parameters:179 - Extracted 9 parameters
+2025-08-17 18:37:15 | INFO     | src.extractors.medtronic_parser:_parse_measurements:266 - Extracted 7 measurements
+2025-08-17 18:37:15 | INFO     | src.extractors.medtronic_parser:_parse_episodes:314 - Extracted 6 episodes
+2025-08-17 18:37:15 | INFO     | src.extractors.medtronic_parser:extract_medtronic_data:47 - ✅ Extracted Medtronic data from icd2.pdf
+2025-08-17 18:37:15 | INFO     | __main__:main:56 - ✅ PDF extraction successful
+2025-08-17 18:37:15 | INFO     | __main__:main:70 - 💾 Inserting data into database...
+2025-08-17 18:37:15 | ERROR    | src.database.operations:insert_complete_session:74 - ❌ Failed to insert session data: Patient name is required
+2025-08-17 18:37:15 | ERROR    | __main__:main:79 - ❌ Failed to save data to database
+2025-08-17 18:39:06 | INFO     | __main__:main:47 - 🔍 Extracting data from icd2.pdf
+2025-08-17 18:39:06 | INFO     | src.extractors.pdf_parser:extract_all:30 - ✅ Extracted data from icd2.pdf
+2025-08-17 18:39:06 | INFO     | src.extractors.medtronic_parser:_parse_device_parameters:179 - Extracted 9 parameters
+2025-08-17 18:39:06 | INFO     | src.extractors.medtronic_parser:_parse_measurements:266 - Extracted 7 measurements
+2025-08-17 18:39:06 | INFO     | src.extractors.medtronic_parser:_parse_episodes:314 - Extracted 6 episodes
+2025-08-17 18:39:06 | INFO     | src.extractors.medtronic_parser:extract_medtronic_data:47 - ✅ Extracted Medtronic data from icd2.pdf
+2025-08-17 18:39:06 | INFO     | __main__:main:56 - ✅ PDF extraction successful
+2025-08-17 18:39:06 | INFO     | __main__:main:70 - 💾 Inserting data into database...
+2025-08-17 18:39:06 | ERROR    | src.database.operations:insert_complete_session:74 - ❌ Failed to insert session data: Patient name is required
+2025-08-17 18:39:06 | ERROR    | __main__:main:79 - ❌ Failed to save data to database
+2025-08-17 18:42:16 | INFO     | __main__:main:47 - 🔍 Extracting data from icd2.pdf
+2025-08-17 18:42:16 | INFO     | src.extractors.pdf_parser:extract_all:30 - ✅ Extracted data from icd2.pdf
+2025-08-17 18:42:16 | INFO     | src.extractors.medtronic_parser:_parse_device_parameters:179 - Extracted 9 parameters
+2025-08-17 18:42:16 | INFO     | src.extractors.medtronic_parser:_parse_measurements:266 - Extracted 7 measurements
+2025-08-17 18:42:16 | INFO     | src.extractors.medtronic_parser:_parse_episodes:314 - Extracted 6 episodes
+2025-08-17 18:42:16 | INFO     | src.extractors.medtronic_parser:extract_medtronic_data:47 - ✅ Extracted Medtronic data from icd2.pdf
+2025-08-17 18:42:16 | INFO     | __main__:main:56 - ✅ PDF extraction successful
+2025-08-17 18:42:16 | INFO     | __main__:main:70 - 💾 Inserting data into database...
+2025-08-17 18:42:16 | ERROR    | src.database.operations:insert_complete_session:74 - ❌ Failed to insert session data: Patient name is required
+2025-08-17 18:42:16 | ERROR    | __main__:main:79 - ❌ Failed to save data to database
+2025-08-17 18:50:16 | INFO     | __main__:main:47 - 🔍 Extracting data from icd2.pdf
+2025-08-17 18:50:16 | INFO     | src.extractors.pdf_parser:extract_all:30 - ✅ Extracted data from icd2.pdf
+2025-08-17 18:50:16 | INFO     | src.extractors.medtronic_parser:_parse_device_parameters:204 - Extracted 9 parameters
+2025-08-17 18:50:16 | INFO     | src.extractors.medtronic_parser:_parse_measurements:291 - Extracted 7 measurements
+2025-08-17 18:50:16 | INFO     | src.extractors.medtronic_parser:_parse_episodes:339 - Extracted 6 episodes
+2025-08-17 18:50:16 | INFO     | src.extractors.medtronic_parser:extract_medtronic_data:47 - ✅ Extracted Medtronic data from icd2.pdf
+2025-08-17 18:50:16 | INFO     | __main__:main:56 - ✅ PDF extraction successful
+2025-08-17 18:50:16 | INFO     | __main__:main:70 - 💾 Inserting data into database...
+2025-08-17 18:50:16 | INFO     | src.database.operations:_insert_or_get_patient:147 - Created new patient: Bolton, Genevieve
+2025-08-17 18:50:16 | INFO     | src.database.operations:_insert_or_get_device:179 - Created new device: Claria MRI™ Quad CRTD DTMA1QQ
+2025-08-17 18:50:16 | INFO     | src.database.operations:_insert_session:197 - Created session for patient c30cbf1b-4f83-4a2d-be84-373e8b3330a0
+2025-08-17 18:50:16 | INFO     | src.database.operations:_validate_parameters:90 - Validated 9 of 9 parameters
+2025-08-17 18:50:16 | INFO     | src.database.operations:_insert_parameters:214 - Inserted 9 parameters
+2025-08-17 18:50:16 | INFO     | src.database.operations:_validate_measurements:104 - Validated 7 of 7 measurements
+2025-08-17 18:50:16 | INFO     | src.database.operations:_insert_measurements:231 - Inserted 7 measurements
+2025-08-17 18:50:16 | INFO     | src.database.operations:_validate_episodes:118 - Validated 6 of 6 episodes
+2025-08-17 18:50:16 | INFO     | src.database.operations:_insert_episodes:248 - Inserted 6 episodes
+2025-08-17 18:50:16 | INFO     | src.database.operations:_insert_device_status:262 - Inserted device status
+2025-08-17 18:50:16 | INFO     | src.database.operations:insert_complete_session:70 - ✅ Successfully inserted session: b2605c61-4bf9-4bd1-addb-ceaf012eab07
+2025-08-17 18:50:16 | INFO     | __main__:main:75 - ✅ Data successfully saved to database
+2025-08-17 18:50:16 | INFO     | __main__:main:76 - 📋 Session ID: b2605c61-4bf9-4bd1-addb-ceaf012eab07
+2025-08-17 19:07:26 | INFO     | __main__:main:47 - 🔍 Extracting data from icd3.pdf
+2025-08-17 19:07:26 | INFO     | src.extractors.pdf_parser:extract_all:30 - ✅ Extracted data from icd3.pdf
+2025-08-17 19:07:26 | INFO     | src.extractors.medtronic_parser:_parse_device_parameters:204 - Extracted 9 parameters
+2025-08-17 19:07:26 | INFO     | src.extractors.medtronic_parser:_parse_measurements:291 - Extracted 7 measurements
+2025-08-17 19:07:26 | INFO     | src.extractors.medtronic_parser:_parse_episodes:339 - Extracted 6 episodes
+2025-08-17 19:07:26 | INFO     | src.extractors.medtronic_parser:extract_medtronic_data:47 - ✅ Extracted Medtronic data from icd3.pdf
+2025-08-17 19:07:26 | INFO     | __main__:main:56 - ✅ PDF extraction successful
+2025-08-17 19:07:26 | INFO     | __main__:main:70 - 💾 Inserting data into database...
+2025-08-17 19:07:27 | INFO     | src.database.operations:_insert_or_get_patient:147 - Created new patient: Hart, Michael
+2025-08-17 19:07:27 | INFO     | src.database.operations:_insert_or_get_device:179 - Created new device: Amplia MRI™ Quad CRTD DTMB1QQ
+2025-08-17 19:07:27 | INFO     | src.database.operations:_insert_session:197 - Created session for patient 3ce3f549-32d9-4ec6-a762-23345f3cb27c
+2025-08-17 19:07:27 | INFO     | src.database.operations:_validate_parameters:90 - Validated 9 of 9 parameters
+2025-08-17 19:07:27 | INFO     | src.database.operations:_insert_parameters:214 - Inserted 9 parameters
+2025-08-17 19:07:27 | INFO     | src.database.operations:_validate_measurements:104 - Validated 7 of 7 measurements
+2025-08-17 19:07:27 | INFO     | src.database.operations:_insert_measurements:231 - Inserted 7 measurements
+2025-08-17 19:07:27 | INFO     | src.database.operations:_validate_episodes:118 - Validated 6 of 6 episodes
+2025-08-17 19:07:27 | INFO     | src.database.operations:_insert_episodes:248 - Inserted 6 episodes
+2025-08-17 19:07:27 | INFO     | src.database.operations:_insert_device_status:262 - Inserted device status
+2025-08-17 19:07:27 | INFO     | src.database.operations:insert_complete_session:70 - ✅ Successfully inserted session: 30091f58-d1c0-4c67-b94b-69bab2bc5619
+2025-08-17 19:07:27 | INFO     | __main__:main:75 - ✅ Data successfully saved to database
+2025-08-17 19:07:27 | INFO     | __main__:main:76 - 📋 Session ID: 30091f58-d1c0-4c67-b94b-69bab2bc5619
+2025-08-17 20:56:09 | INFO     | __main__:main:47 - 🔍 Extracting data from icd2.pdf
+2025-08-17 20:56:10 | INFO     | src.extractors.pdf_parser:extract_all:30 - ✅ Extracted data from icd2.pdf
+2025-08-17 20:56:10 | INFO     | src.extractors.medtronic_parser:_parse_device_parameters:204 - Extracted 9 parameters
+2025-08-17 20:56:10 | INFO     | src.extractors.medtronic_parser:_parse_measurements:291 - Extracted 7 measurements
+2025-08-17 20:56:10 | INFO     | src.extractors.medtronic_parser:_parse_episodes:339 - Extracted 6 episodes
+2025-08-17 20:56:10 | INFO     | src.extractors.medtronic_parser:extract_medtronic_data:47 - ✅ Extracted Medtronic data from icd2.pdf
+2025-08-17 20:56:10 | INFO     | __main__:main:56 - ✅ PDF extraction successful
+2025-08-17 20:56:10 | INFO     | __main__:main:70 - 💾 Inserting data into database...
+2025-08-17 20:56:10 | INFO     | src.database.operations:_insert_or_get_patient:133 - Found existing patient: Bolton, Genevieve
+2025-08-17 20:56:10 | INFO     | src.database.operations:_insert_or_get_device:164 - Found existing device: RPA239938H
+2025-08-17 20:56:10 | INFO     | src.database.operations:_insert_session:197 - Created session for patient c30cbf1b-4f83-4a2d-be84-373e8b3330a0
+2025-08-17 20:56:10 | INFO     | src.database.operations:_validate_parameters:90 - Validated 9 of 9 parameters
+2025-08-17 20:56:10 | INFO     | src.database.operations:_insert_parameters:214 - Inserted 9 parameters
+2025-08-17 20:56:10 | INFO     | src.database.operations:_validate_measurements:104 - Validated 7 of 7 measurements
+2025-08-17 20:56:10 | INFO     | src.database.operations:_insert_measurements:231 - Inserted 7 measurements
+2025-08-17 20:56:10 | INFO     | src.database.operations:_validate_episodes:118 - Validated 6 of 6 episodes
+2025-08-17 20:56:10 | INFO     | src.database.operations:_insert_episodes:248 - Inserted 6 episodes
+2025-08-17 20:56:10 | INFO     | src.database.operations:_insert_device_status:262 - Inserted device status
+2025-08-17 20:56:10 | INFO     | src.database.operations:insert_complete_session:70 - ✅ Successfully inserted session: df00f0aa-21c3-49cf-85dd-d15b2830e024
+2025-08-17 20:56:10 | INFO     | __main__:main:75 - ✅ Data successfully saved to database
+2025-08-17 20:56:10 | INFO     | __main__:main:76 - 📋 Session ID: df00f0aa-21c3-49cf-85dd-d15b2830e024

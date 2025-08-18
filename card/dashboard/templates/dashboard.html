@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard - Medtronic{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-users me-2"></i>Patient Dashboard</h2>
+    <div>
+        <button class="btn btn-primary" onclick="refreshData()">
+            <i class="fas fa-sync me-1"></i> Refresh
+        </button>
+        <button class="btn btn-success" onclick="uploadPDF()">
+            <i class="fas fa-upload me-1"></i> Upload PDF
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-custom bg-primary text-white">
+            <div class="card-body metric-card">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <div class="metric-value" id="total-patients">-</div>
+                <div>Total Patients</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom bg-info text-white">
+            <div class="card-body metric-card">
+                <i class="fas fa-microchip fa-2x mb-2"></i>
+                <div class="metric-value" id="total-devices">-</div>
+                <div>Active Devices</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom bg-success text-white">
+            <div class="card-body metric-card">
+                <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                <div class="metric-value" id="total-sessions">-</div>
+                <div>Total Sessions</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom bg-warning text-white">
+            <div class="card-body metric-card">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <div class="metric-value" id="alerts-count">-</div>
+                <div>Active Alerts</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patients Table -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5><i class="fas fa-list me-2"></i>Patient List</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="patients-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Date of Birth</th>
+                        <th>Device Model</th>
+                        <th>Serial Number</th>
+                        <th>Last Session</th>
+                        <th>Battery Status</th>
+                        <th>Overall Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="patients-tbody">
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let patientsData = [];
+
+// Load patients data
+async function loadPatients() {
+    try {
+        const response = await fetch('/api/patients');
+        patientsData = await response.json();
+        
+        updateSummaryCards();
+        renderPatientsTable();
+    } catch (error) {
+        console.error('Error loading patients:', error);
+        showError('Failed to load patient data');
+    }
+}
+
+// Update summary cards
+function updateSummaryCards() {
+    document.getElementById('total-patients').textContent = patientsData.length;
+    document.getElementById('total-devices').textContent = new Set(patientsData.map(p => p.serial_number)).size;
+    document.getElementById('total-sessions').textContent = patientsData.length; // Simplified
+    
+    const alertsCount = patientsData.filter(p => 
+        p.overall_status === 'Attention' || p.remaining_months < 12
+    ).length;
+    document.getElementById('alerts-count').textContent = alertsCount;
+}
+
+// Render patients table
+function renderPatientsTable() {
+    const tbody = document.getElementById('patients-tbody');
+    
+    if (patientsData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">No patients found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = patientsData.map(patient => {
+        const dobFormatted = patient.date_of_birth ? 
+            new Date(patient.date_of_birth).toLocaleDateString() : 'N/A';
+        
+        const lastSessionFormatted = new Date(patient.last_interrogation).toLocaleDateString();
+        
+        const batteryClass = getBatteryStatusClass(patient.battery_status, patient.remaining_months);
+        const statusClass = getOverallStatusClass(patient.overall_status);
+        
+        return `
+            <tr class="patient-row" onclick="viewPatient('${patient.patient_id}')">
+                <td><strong>${patient.patient_name}</strong></td>
+                <td>${dobFormatted}</td>
+                <td>${patient.device_model}</td>
+                <td><code>${patient.serial_number}</code></td>
+                <td>${lastSessionFormatted}</td>
+                <td>
+                    <span class="${batteryClass}">
+                        <i class="fas fa-battery-half me-1"></i>
+                        ${patient.battery_status} (${patient.remaining_months}mo)
+                    </span>
+                </td>
+                <td>
+                    <span class="${statusClass}">
+                        <i class="fas fa-circle me-1"></i>
+                        ${patient.overall_status}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewSession('${patient.last_session_id}')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Helper functions for status styling
+function getBatteryStatusClass(status, months) {
+    if (months < 6) return 'status-danger';
+    if (months < 12) return 'status-warning';
+    return 'status-normal';
+}
+
+function getOverallStatusClass(status) {
+    if (status === 'Normal') return 'status-normal';
+    if (status === 'Attention') return 'status-warning';
+    return 'status-danger';
+}
+
+// Navigation functions
+function viewPatient(patientId) {
+    window.location.href = `/patient/${patientId}`;
+}
+
+function viewSession(sessionId) {
+    window.location.href = `/session/${sessionId}`;
+}
+
+// Utility functions
+function refreshData() {
+    loadPatients();
+}
+
+function uploadPDF() {
+    alert('PDF Upload feature - Would integrate with file upload system');
+}
+
+function showReports() {
+    alert('Reports feature - Would show trending and analytics');
+}
+
+function showAlerts() {
+    alert('Alerts feature - Would show active clinical alerts');
+}
+
+function showError(message) {
+    // Simple error display - could be enhanced with toast notifications
+    alert('Error: ' + message);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatients();
+});
+</script>
+{% endblock %}

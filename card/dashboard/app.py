@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Medtronic Clinical Dashboard - Fixed Version
+Medtronic Clinical Dashboard - CardiAVue
 Interactive web interface for viewing patient device data
+Updated with login authentication system
 """
 
 import sys
@@ -16,7 +17,7 @@ current_file = Path(__file__).resolve()
 project_root = current_file.parent.parent
 sys.path.insert(0, str(project_root))
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 from src.database.connection import get_db_session
 from src.database.models import (
     Patient, Device, Session as SessionModel, DeviceParameter,
@@ -24,16 +25,72 @@ from src.database.models import (
 )
 
 app = Flask(__name__)
-app.secret_key = 'medtronic-dashboard-2025'
+
+# SECRET KEY - Required for sessions/login to work
+app.secret_key = 'your-super-secret-key-2025'  # ← UPDATED SECRET KEY
+
+# Or use environment variable (more secure)
+# app.secret_key = os.environ.get('SECRET_KEY', 'your-super-secret-key-2025')
+
+# Test credentials for authentication
+VALID_USERS = {
+    'doctor': 'pass123',
+    'nurse': 'pass123',
+    'admin': 'admin123',
+    'cubit104': 'medtronic'
+}
 
 @app.route('/')
+def login():
+    """Login page - New home page with animations"""
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def authenticate():
+    """Handle login authentication"""
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    # Check credentials
+    if username in VALID_USERS and VALID_USERS[username] == password:
+        session['user'] = username
+        session['login_time'] = datetime.now().isoformat()
+        print(f"✅ User {username} logged in successfully")
+        return redirect(url_for('dashboard'))
+    else:
+        print(f"❌ Failed login attempt for user: {username}")
+        return redirect(url_for('login'))
+
+@app.route('/dashboard')
 def dashboard():
-    """Main dashboard page showing patient list"""
-    return render_template('dashboard.html', current_time=datetime.now().strftime('%Y-%m-%d %H:%M'))
+    """Main dashboard page showing patient list - requires login"""
+    # Check if user is logged in
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    current_user = session.get('user', 'Unknown')
+    current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    
+    return render_template('dashboard.html', 
+                         current_time=current_time,
+                         current_user=current_user)
+
+@app.route('/logout')
+def logout():
+    """Logout user and redirect to login page"""
+    user = session.get('user', 'Unknown')
+    session.pop('user', None)
+    session.pop('login_time', None)
+    print(f"👋 User {user} logged out")
+    return redirect(url_for('login'))
 
 @app.route('/api/patients')
 def get_patients():
     """API endpoint to get all patients with their latest session info"""
+    # Check if user is logged in for API access
+    if 'user' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
     db_session = get_db_session()
     
     try:
@@ -90,9 +147,14 @@ def get_patients():
     
     finally:
         db_session.close()
+
 @app.route('/patient/<patient_id>')
 def patient_details(patient_id):
     """Show all sessions for this patient"""
+    # Check if user is logged in
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
     db_session = get_db_session()
     
     try:
@@ -116,26 +178,27 @@ def patient_details(patient_id):
         
         # Format sessions data for template
         sessions_data = []
-        for session in sessions:
+        for session_item in sessions:
             # Get device info
             device = db_session.query(Device).filter(
-                Device.device_id == session.device_id
+                Device.device_id == session_item.device_id
             ).first()
             
             sessions_data.append({
-                'session_id': str(session.session_id),
-                'interrogation_date': session.interrogation_date,
-                'created_at': session.created_at,
-                'session_type': session.session_type,
-                'processing_status': session.processing_status,
-                'pdf_filename': session.pdf_filename,
+                'session_id': str(session_item.session_id),
+                'interrogation_date': session_item.interrogation_date,
+                'created_at': session_item.created_at,
+                'session_type': session_item.session_type,
+                'processing_status': session_item.processing_status,
+                'pdf_filename': session_item.pdf_filename,
                 'device_model': device.device_model if device else 'Unknown'
             })
         
         return render_template('patient_history.html', 
                              patient_id=patient_id,
                              patient_name=patient.patient_name if patient else 'Unknown Patient',
-                             sessions=sessions_data)
+                             sessions=sessions_data,
+                             current_user=session.get('user', 'Unknown'))
     
     except Exception as e:
         print(f"❌ DEBUG: Error loading patient {patient_id}: {e}")
@@ -148,29 +211,33 @@ def patient_details(patient_id):
 @app.route('/api/session/<session_id>')
 def get_session_details(session_id):
     """Get detailed session data including measurements, parameters, and episodes"""
+    # Check if user is logged in for API access
+    if 'user' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
     db_session = get_db_session()
     
     try:
         print(f"🔍 DEBUG: Loading session {session_id}")
         
         # Get session info
-        session = db_session.query(SessionModel).filter(
+        session_obj = db_session.query(SessionModel).filter(
             SessionModel.session_id == session_id
         ).first()
         
-        if not session:
+        if not session_obj:
             print(f"❌ DEBUG: Session {session_id} not found")
             return jsonify({'error': 'Session not found'}), 404
         
-        print(f"📋 DEBUG: Found session for patient {session.patient_id}")
+        print(f"📋 DEBUG: Found session for patient {session_obj.patient_id}")
         
         # Get patient and device
         patient = db_session.query(Patient).filter(
-            Patient.patient_id == session.patient_id
+            Patient.patient_id == session_obj.patient_id
         ).first()
         
         device = db_session.query(Device).filter(
-            Device.device_id == session.device_id
+            Device.device_id == session_obj.device_id
         ).first()
         
         print(f"👤 DEBUG: Patient: {patient.patient_name if patient else 'None'}")
@@ -257,11 +324,11 @@ def get_session_details(session_id):
         
         response_data = {
             'session': {
-                'session_id': str(session.session_id),
-                'interrogation_date': session.interrogation_date.isoformat(),
-                'session_type': session.session_type,
-                'physician_name': session.physician_name,
-                'processing_status': session.processing_status
+                'session_id': str(session_obj.session_id),
+                'interrogation_date': session_obj.interrogation_date.isoformat(),
+                'session_type': session_obj.session_type,
+                'physician_name': session_obj.physician_name,
+                'processing_status': session_obj.processing_status
             },
             'patient': {
                 'name': patient.patient_name if patient else 'Unknown',
@@ -294,22 +361,41 @@ def get_session_details(session_id):
 @app.route('/session/<session_id>')
 def session_detail_page(session_id):
     """Session detail page with clinical data"""
-    return render_template('session_detail.html', session_id=session_id)
+    # Check if user is logged in
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('session_detail.html', 
+                         session_id=session_id,
+                         current_user=session.get('user', 'Unknown'))
 
 @app.route('/api/test')
 def test_api():
     """Test endpoint to verify API is working"""
     return jsonify({
         'status': 'API Working',
-        'timestamp': datetime.now().isoformat(),
-        'user': 'cubit104'
+        'timestamp': datetime.utcnow().isoformat(),
+        'user': session.get('user', 'Not logged in'),
+        'utc_time': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    })
+
+@app.route('/api/user/info')
+def user_info():
+    """Get current user information"""
+    if 'user' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    return jsonify({
+        'username': session.get('user'),
+        'login_time': session.get('login_time'),
+        'current_time': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting Medtronic Clinical Dashboard...")
+    print("🚀 Starting CardiAVue - Medtronic Clinical Dashboard...")
     print("📊 Dashboard will be available at: http://localhost:5000")
-    print("👤 Current user: cubit104")
-    print(f"🕐 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("🔐 Login required - Use test credentials")
+    print(f"🕐 Started at: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
     print("🔧 Debug mode enabled - Check console for detailed logs")
     
     app.run(debug=True, host='0.0.0.0', port=5000)

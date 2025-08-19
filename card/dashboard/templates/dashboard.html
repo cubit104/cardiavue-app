@@ -4,82 +4,169 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-users me-2"></i>Patient Dashboard</h2>
     <div>
-        <button class="btn btn-primary" onclick="refreshData()">
-            <i class="fas fa-sync me-1"></i> Refresh
+        <h2 class="mb-1" style="font-weight: 700; color: var(--text-primary);">
+            <i class="fas fa-tachometer-alt me-3" style="color: var(--primary-dark);"></i>Patient Dashboard
+        </h2>
+        <p class="text-muted mb-0">Monitor cardiac device patients and their latest sessions</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" onclick="refreshData()">
+            <i class="fas fa-sync-alt me-2"></i> Refresh
         </button>
-        <button class="btn btn-success" onclick="uploadPDF()">
-            <i class="fas fa-upload me-1"></i> Upload PDF
+        <button class="btn btn-primary" onclick="uploadPDF()">
+            <i class="fas fa-cloud-upload-alt me-2"></i> Upload Data
         </button>
     </div>
 </div>
 
-<!-- Summary Cards -->
+<!-- Enhanced Summary Cards -->
 <div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card card-custom bg-primary text-white">
-            <div class="card-body metric-card">
-                <i class="fas fa-users fa-2x mb-2"></i>
-                <div class="metric-value" id="total-patients">-</div>
-                <div>Total Patients</div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card card-custom h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body metric-card text-white">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="metric-value" id="total-patients">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                        <div style="font-weight: 500; opacity: 0.9;">Total Patients</div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 p-3 rounded-circle">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <small style="opacity: 0.8;">
+                        <i class="fas fa-arrow-up me-1"></i>
+                        Active monitoring
+                    </small>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card card-custom bg-info text-white">
-            <div class="card-body metric-card">
-                <i class="fas fa-microchip fa-2x mb-2"></i>
-                <div class="metric-value" id="total-devices">-</div>
-                <div>Active Devices</div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card card-custom h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="card-body metric-card text-white">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="metric-value" id="total-devices">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                        <div style="font-weight: 500; opacity: 0.9;">Active Devices</div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 p-3 rounded-circle">
+                        <i class="fas fa-microchip fa-2x"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <small style="opacity: 0.8;">
+                        <i class="fas fa-check-circle me-1"></i>
+                        Functioning normally
+                    </small>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card card-custom bg-success text-white">
-            <div class="card-body metric-card">
-                <i class="fas fa-clipboard-list fa-2x mb-2"></i>
-                <div class="metric-value" id="total-sessions">-</div>
-                <div>Total Sessions</div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card card-custom h-100" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <div class="card-body metric-card text-white">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="metric-value" id="total-sessions">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                        <div style="font-weight: 500; opacity: 0.9;">Total Sessions</div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 p-3 rounded-circle">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <small style="opacity: 0.8;">
+                        <i class="fas fa-calendar-check me-1"></i>
+                        Recent activity
+                    </small>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card card-custom bg-warning text-white">
-            <div class="card-body metric-card">
-                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                <div class="metric-value" id="alerts-count">-</div>
-                <div>Active Alerts</div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card card-custom h-100" style="background: linear-gradient(135deg, #ff6b6b 0%, #ffa8a8 100%);">
+            <div class="card-body metric-card text-white">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="metric-value" id="alerts-count">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                        <div style="font-weight: 500; opacity: 0.9;">Active Alerts</div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 p-3 rounded-circle">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <small style="opacity: 0.8;">
+                        <i class="fas fa-bell me-1"></i>
+                        Require attention
+                    </small>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Patients Table -->
+<!-- Enhanced Patients Table -->
 <div class="card card-custom">
-    <div class="card-header">
-        <h5><i class="fas fa-list me-2"></i>Patient List</h5>
+    <div class="card-header bg-transparent border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0" style="font-weight: 600; color: var(--text-primary);">
+                <i class="fas fa-list-ul me-2" style="color: var(--primary-dark);"></i>Patient Registry
+            </h5>
+            <div class="d-flex gap-2">
+                <div class="input-group" style="width: 250px;">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" placeholder="Search patients..." id="patient-search">
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="filterPatients('all')">All Patients</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterPatients('normal')">Normal Status</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterPatients('attention')">Needs Attention</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterPatients('low-battery')">Low Battery</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover" id="patients-table">
-                <thead class="table-dark">
+            <table class="table table-hover mb-0" id="patients-table">
+                <thead>
                     <tr>
-                        <th>Patient Name</th>
+                        <th class="px-4">Patient</th>
                         <th>Date of Birth</th>
-                        <th>Device Model</th>
-                        <th>Serial Number</th>
+                        <th>Device Info</th>
                         <th>Last Session</th>
                         <th>Battery Status</th>
                         <th>Overall Status</th>
-                        <th>Actions</th>
+                        <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="patients-tbody">
                     <tr>
-                        <td colspan="8" class="text-center">
-                            <div class="spinner-border" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="spinner-border text-primary mb-3" role="status"></div>
+                                <p class="text-muted mb-0">Loading patient data...</p>
                             </div>
                         </td>
                     </tr>
@@ -108,16 +195,42 @@ async function loadPatients() {
     }
 }
 
-// Update summary cards
+// Update summary cards with animations
 function updateSummaryCards() {
-    document.getElementById('total-patients').textContent = patientsData.length;
-    document.getElementById('total-devices').textContent = new Set(patientsData.map(p => p.serial_number)).size;
-    document.getElementById('total-sessions').textContent = patientsData.length; // Simplified
+    const cards = [
+        { id: 'total-patients', value: patientsData.length },
+        { id: 'total-devices', value: new Set(patientsData.map(p => p.serial_number)).size },
+        { id: 'total-sessions', value: patientsData.length }, // Simplified
+        { id: 'alerts-count', value: patientsData.filter(p => p.overall_status === 'Attention' || p.remaining_months < 12).length }
+    ];
     
-    const alertsCount = patientsData.filter(p => 
-        p.overall_status === 'Attention' || p.remaining_months < 12
-    ).length;
-    document.getElementById('alerts-count').textContent = alertsCount;
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            const element = document.getElementById(card.id);
+            if (element) {
+                // Animate the number counting up
+                animateCountUp(element, card.value);
+            }
+        }, index * 200);
+    });
+}
+
+function animateCountUp(element, targetValue) {
+    const startValue = 0;
+    const duration = 1000;
+    const stepTime = 50;
+    const steps = duration / stepTime;
+    const stepValue = targetValue / steps;
+    let currentValue = startValue;
+    
+    const timer = setInterval(() => {
+        currentValue += stepValue;
+        if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(currentValue);
+    }, stepTime);
 }
 
 // Render patients table
@@ -125,11 +238,20 @@ function renderPatientsTable() {
     const tbody = document.getElementById('patients-tbody');
     
     if (patientsData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center">No patients found</td></tr>';
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No patients found</p>
+                    </div>
+                </td>
+            </tr>
+        `;
         return;
     }
     
-    tbody.innerHTML = patientsData.map(patient => {
+    tbody.innerHTML = patientsData.map((patient, index) => {
         const dobFormatted = patient.date_of_birth ? 
             new Date(patient.date_of_birth).toLocaleDateString() : 'N/A';
         
@@ -139,45 +261,148 @@ function renderPatientsTable() {
         const statusClass = getOverallStatusClass(patient.overall_status);
         
         return `
-            <tr class="patient-row" onclick="viewPatient('${patient.patient_id}')">
-                <td><strong>${patient.patient_name}</strong></td>
-                <td>${dobFormatted}</td>
-                <td>${patient.device_model}</td>
-                <td><code>${patient.serial_number}</code></td>
-                <td>${lastSessionFormatted}</td>
+            <tr class="patient-row" onclick="viewPatient('${patient.patient_id}')" style="animation-delay: ${index * 0.1}s;">
+                <td class="px-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="fas fa-user text-primary"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">${patient.patient_name}</div>
+                            <small class="text-muted">ID: ${patient.patient_id}</small>
+                        </div>
+                    </div>
+                </td>
                 <td>
-                    <span class="${batteryClass}">
-                        <i class="fas fa-battery-half me-1"></i>
+                    <span style="font-weight: 500;">${dobFormatted}</span>
+                </td>
+                <td>
+                    <div>
+                        <div style="font-weight: 500;">${patient.device_model}</div>
+                        <small class="text-muted font-monospace">${patient.serial_number}</small>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-light text-dark">${lastSessionFormatted}</span>
+                </td>
+                <td>
+                    <span class="badge ${getBatteryBadgeClass(patient.remaining_months)}">
+                        <i class="fas ${getBatteryIcon(patient.remaining_months)} me-1"></i>
                         ${patient.battery_status} (${patient.remaining_months}mo)
                     </span>
                 </td>
                 <td>
-                    <span class="${statusClass}">
-                        <i class="fas fa-circle me-1"></i>
+                    <span class="badge ${getStatusBadgeClass(patient.overall_status)}">
+                        <i class="fas ${getStatusIcon(patient.overall_status)} me-1"></i>
                         ${patient.overall_status}
                     </span>
                 </td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewSession('${patient.last_session_id}')">
-                        <i class="fas fa-eye"></i> View
-                    </button>
+                <td class="text-end pe-4">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); viewPatient('${patient.patient_id}')" title="View Patient Details">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewSession('${patient.last_session_id}')" title="View Latest Session">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
     }).join('');
+    
+    // Add fade-in animation to rows
+    const rows = tbody.querySelectorAll('.patient-row');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
 }
 
-// Helper functions for status styling
+// Enhanced helper functions for status styling
 function getBatteryStatusClass(status, months) {
     if (months < 6) return 'status-danger';
     if (months < 12) return 'status-warning';
     return 'status-normal';
 }
 
+function getBatteryBadgeClass(months) {
+    if (months < 6) return 'bg-danger';
+    if (months < 12) return 'bg-warning text-dark';
+    return 'bg-success';
+}
+
+function getBatteryIcon(months) {
+    if (months < 6) return 'fa-battery-empty';
+    if (months < 12) return 'fa-battery-half';
+    return 'fa-battery-full';
+}
+
 function getOverallStatusClass(status) {
     if (status === 'Normal') return 'status-normal';
     if (status === 'Attention') return 'status-warning';
     return 'status-danger';
+}
+
+function getStatusBadgeClass(status) {
+    if (status === 'Normal') return 'bg-success';
+    if (status === 'Attention') return 'bg-warning text-dark';
+    return 'bg-danger';
+}
+
+function getStatusIcon(status) {
+    if (status === 'Normal') return 'fa-check-circle';
+    if (status === 'Attention') return 'fa-exclamation-triangle';
+    return 'fa-times-circle';
+}
+
+// Enhanced search and filter functionality
+function filterPatients(filterType) {
+    let filteredData = [...patientsData];
+    
+    switch(filterType) {
+        case 'normal':
+            filteredData = patientsData.filter(p => p.overall_status === 'Normal');
+            break;
+        case 'attention':
+            filteredData = patientsData.filter(p => p.overall_status === 'Attention');
+            break;
+        case 'low-battery':
+            filteredData = patientsData.filter(p => p.remaining_months < 12);
+            break;
+        default:
+            filteredData = patientsData;
+    }
+    
+    renderFilteredPatients(filteredData);
+}
+
+function renderFilteredPatients(filteredData) {
+    const originalData = patientsData;
+    patientsData = filteredData;
+    renderPatientsTable();
+    patientsData = originalData;
+}
+
+// Search functionality
+function setupSearch() {
+    const searchInput = document.getElementById('patient-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredData = patientsData.filter(patient => 
+                patient.patient_name.toLowerCase().includes(searchTerm) ||
+                patient.device_model.toLowerCase().includes(searchTerm) ||
+                patient.serial_number.toLowerCase().includes(searchTerm)
+            );
+            renderFilteredPatients(filteredData);
+        });
+    }
 }
 
 // Navigation functions
@@ -191,29 +416,29 @@ function viewSession(sessionId) {
 
 // Utility functions
 function refreshData() {
+    showLoading(document.querySelector('.card-custom'));
     loadPatients();
 }
 
 function uploadPDF() {
-    alert('PDF Upload feature - Would integrate with file upload system');
-}
-
-function showReports() {
-    alert('Reports feature - Would show trending and analytics');
-}
-
-function showAlerts() {
-    alert('Alerts feature - Would show active clinical alerts');
+    showNotification('PDF Upload feature - Integration coming soon', 'info');
 }
 
 function showError(message) {
-    // Simple error display - could be enhanced with toast notifications
-    alert('Error: ' + message);
+    showNotification(message, 'danger');
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadPatients();
+    setupSearch();
+    
+    // Add loading animation to metric cards
+    const metricCards = document.querySelectorAll('.metric-card');
+    metricCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.2}s`;
+        card.classList.add('fade-in-up');
+    });
 });
 </script>
 {% endblock %}

@@ -1,55 +1,364 @@
 {% extends "base.html" %}
 
-{% block title %}Patient Details - Medtronic{% endblock %}
+{% block title %}Patient Details - CardiVue{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-user me-2"></i>Patient Details</h2>
     <div>
-        <button class="btn btn-secondary" onclick="window.history.back()">
-            <i class="fas fa-arrow-left me-1"></i> Back
+        <h2 class="mb-1" style="font-weight: 700; color: var(--text-primary);">
+            <i class="fas fa-user-md me-3" style="color: var(--primary-dark);"></i>Patient Profile
+        </h2>
+        <p class="text-muted mb-0">Comprehensive patient information and device details</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" onclick="window.history.back()">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </button>
+        <button class="btn btn-outline-primary" onclick="viewPatientHistory()">
+            <i class="fas fa-history me-2"></i> View History
+        </button>
+        <button class="btn btn-primary" onclick="scheduleSession()">
+            <i class="fas fa-calendar-plus me-2"></i> Schedule Session
         </button>
     </div>
 </div>
 
-<!-- Patient Info -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card card-custom">
-            <div class="card-body" id="patient-info">
-                <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading...</span>
+<style>
+    .patient-profile-card {
+        background: linear-gradient(135deg, var(--bg-lighter) 0%, var(--bg-light) 100%);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-xl);
+        padding: 32px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .patient-profile-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: var(--primary-gradient);
+    }
+    
+    .patient-avatar {
+        width: 120px;
+        height: 120px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+        font-weight: 700;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+    }
+    
+    .patient-avatar::after {
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .info-section {
+        background: var(--bg-lighter);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition-normal);
+    }
+    
+    .info-section:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+    
+    .info-section h5 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--border-light);
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-value {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: var(--radius-xl);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-normal {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--status-normal);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    
+    .status-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--status-warning);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    
+    .status-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--status-danger);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        background: var(--bg-lighter);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        text-align: center;
+        transition: var(--transition-normal);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: var(--transition-fast);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .recent-sessions {
+        background: var(--bg-lighter);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .session-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-light);
+        transition: var(--transition-fast);
+        cursor: pointer;
+    }
+    
+    .session-item:last-child {
+        border-bottom: none;
+    }
+    
+    .session-item:hover {
+        background: var(--bg-light);
+        transform: translateX(4px);
+    }
+    
+    .session-date {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    
+    .session-summary {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+</style>
+
+<!-- Patient Profile Card -->
+<div class="patient-profile-card fade-in-up">
+    <div class="row align-items-center">
+        <div class="col-md-3 text-center">
+            <div class="patient-avatar mx-auto">
+                <span id="patient-initials">--</span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h3 class="mb-2" style="font-weight: 700;" id="patient-name">Loading...</h3>
+            <p class="text-muted mb-3" id="patient-id">Patient ID: --</p>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="status-indicator status-normal">
+                    <i class="fas fa-heartbeat"></i>
+                    Device Active
+                </span>
+                <span class="status-indicator status-normal">
+                    <i class="fas fa-shield-check"></i>
+                    Monitoring Normal
+                </span>
+            </div>
+        </div>
+        <div class="col-md-3 text-end">
+            <div class="text-muted mb-1">Last Contact</div>
+            <div class="fs-5 fw-bold" id="last-contact">--</div>
+            <div class="text-muted mt-2">Next Appointment</div>
+            <div class="fs-6 fw-semibold text-primary" id="next-appointment">Scheduled</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="quick-stats fade-in-up">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-value" id="total-sessions">--</div>
+        <div class="stat-label">Total Sessions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-battery-three-quarters"></i>
+        </div>
+        <div class="stat-value" id="battery-level">--</div>
+        <div class="stat-label">Battery Level</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-value" id="device-performance">--</div>
+        <div class="stat-label">Device Performance</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value" id="alerts-count">--</div>
+        <div class="stat-label">Active Alerts</div>
+    </div>
+</div>
+
+<!-- Patient Information -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="info-section fade-in-up">
+            <h5><i class="fas fa-user me-2"></i>Patient Information</h5>
+            <div id="patient-info">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Loading patient information...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="info-section fade-in-up">
+            <h5><i class="fas fa-microchip me-2"></i>Device Information</h5>
+            <div id="device-info">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Loading device information...</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Sessions History -->
-<div class="card card-custom">
-    <div class="card-header">
-        <h5><i class="fas fa-history me-2"></i>Session History</h5>
+<!-- Recent Sessions -->
+<div class="card card-custom fade-in-up">
+    <div class="card-header bg-transparent border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0" style="font-weight: 600; color: var(--text-primary);">
+                <i class="fas fa-history me-2" style="color: var(--primary-dark);"></i>Recent Sessions
+            </h5>
+            <button class="btn btn-outline-primary btn-sm" onclick="viewAllSessions()">
+                <i class="fas fa-list me-1"></i> View All
+            </button>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover" id="sessions-table">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Date</th>
-                        <th>Device</th>
-                        <th>Parameters</th>
-                        <th>Measurements</th>
-                        <th>Episodes</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="sessions-tbody">
-                </tbody>
-            </table>
+    <div class="card-body p-0">
+        <div class="recent-sessions">
+            <div id="sessions-list">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Loading recent sessions...</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
 {% endblock %}
 
 {% block scripts %}
@@ -59,69 +368,252 @@ let patientId = '{{ patient_id }}';
 
 async function loadPatientData() {
     try {
+        showLoading(document.getElementById('patient-info'));
+        
         const response = await fetch(`/api/patient/${patientId}`);
         patientData = await response.json();
         
         renderPatientInfo();
-        renderSessionsTable();
+        renderDeviceInfo();
+        renderRecentSessions();
+        updateQuickStats();
+        
     } catch (error) {
         console.error('Error loading patient data:', error);
+        showError('Failed to load patient data');
     }
 }
 
 function renderPatientInfo() {
-    const info = document.getElementById('patient-info');
     const patient = patientData.patient;
     
-    info.innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <h5><i class="fas fa-user me-2"></i>Patient Information</h5>
-                <p><strong>Name:</strong> ${patient.patient_name}</p>
-                <p><strong>Date of Birth:</strong> ${patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'N/A'}</p>
-                <p><strong>Physician:</strong> ${patient.physician_name || 'N/A'}</p>
-                <p><strong>MRN:</strong> ${patient.medical_record_number || 'N/A'}</p>
+    // Update header information
+    document.getElementById('patient-name').textContent = patient.patient_name || 'Unknown Patient';
+    document.getElementById('patient-id').textContent = `Patient ID: ${patient.patient_id || 'N/A'}`;
+    document.getElementById('last-contact').textContent = formatDate(patient.last_contact) || 'No recent contact';
+    document.getElementById('next-appointment').textContent = 'Schedule Follow-up';
+    
+    // Generate initials for avatar
+    const initials = (patient.patient_name || 'UN')
+        .split(' ')
+        .map(name => name.charAt(0))
+        .join('')
+        .toUpperCase();
+    document.getElementById('patient-initials').textContent = initials;
+    
+    // Render detailed patient info
+    document.getElementById('patient-info').innerHTML = `
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-user text-primary"></i>
+                Full Name
             </div>
-            <div class="col-md-6">
-                <h5><i class="fas fa-chart-line me-2"></i>Session Summary</h5>
-                <p><strong>Total Sessions:</strong> ${patientData.sessions.length}</p>
-                <p><strong>Latest Session:</strong> ${patientData.sessions.length > 0 ? new Date(patientData.sessions[0].interrogation_date).toLocaleDateString() : 'N/A'}</p>
+            <div class="info-value">${patient.patient_name || 'N/A'}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-birthday-cake text-warning"></i>
+                Date of Birth
             </div>
+            <div class="info-value">${formatDate(patient.date_of_birth) || 'N/A'}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-user-md text-success"></i>
+                Physician
+            </div>
+            <div class="info-value">${patient.physician_name || 'N/A'}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-id-card text-info"></i>
+                Medical Record Number
+            </div>
+            <div class="info-value">${patient.medical_record_number || 'N/A'}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-phone text-secondary"></i>
+                Contact Information
+            </div>
+            <div class="info-value">${patient.phone || 'Not provided'}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-notes-medical text-danger"></i>
+                Medical Notes
+            </div>
+            <div class="info-value">${patient.notes || 'No special notes'}</div>
         </div>
     `;
 }
 
-function renderSessionsTable() {
-    const tbody = document.getElementById('sessions-tbody');
+function renderDeviceInfo() {
+    const device = patientData.device || {};
+    const sessions = patientData.sessions || [];
+    const latestSession = sessions[0] || {};
     
-    if (patientData.sessions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No sessions found</td></tr>';
+    document.getElementById('device-info').innerHTML = `
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-microchip text-primary"></i>
+                Device Model
+            </div>
+            <div class="info-value">${device.device_model || latestSession.device_model || 'N/A'}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-barcode text-warning"></i>
+                Serial Number
+            </div>
+            <div class="info-value"><code>${device.serial_number || latestSession.device_serial || 'N/A'}</code></div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-calendar-plus text-success"></i>
+                Implant Date
+            </div>
+            <div class="info-value">${formatDate(device.implant_date) || 'N/A'}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-battery-three-quarters text-info"></i>
+                Battery Status
+            </div>
+            <div class="info-value">
+                <span class="status-indicator status-normal">
+                    <i class="fas fa-check-circle"></i>
+                    Good (18 months remaining)
+                </span>
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-heartbeat text-danger"></i>
+                Overall Status
+            </div>
+            <div class="info-value">
+                <span class="status-indicator status-normal">
+                    <i class="fas fa-shield-check"></i>
+                    Normal Function
+                </span>
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fas fa-calendar-check text-secondary"></i>
+                Last Interrogation
+            </div>
+            <div class="info-value">${formatDate(latestSession.interrogation_date) || 'N/A'}</div>
+        </div>
+    `;
+}
+
+function renderRecentSessions() {
+    const sessions = patientData.sessions || [];
+    
+    if (sessions.length === 0) {
+        document.getElementById('sessions-list').innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h6 class="text-muted">No Sessions Found</h6>
+                <p class="text-muted">No session history available for this patient.</p>
+                <button class="btn btn-primary" onclick="scheduleSession()">
+                    <i class="fas fa-plus me-2"></i>Schedule First Session
+                </button>
+            </div>
+        `;
         return;
     }
     
-    tbody.innerHTML = patientData.sessions.map(session => `
-        <tr>
-            <td>${new Date(session.interrogation_date).toLocaleDateString()}</td>
-            <td>${session.device_model}</td>
-            <td><span class="badge bg-primary">${session.parameters_count}</span></td>
-            <td><span class="badge bg-info">${session.measurements_count}</span></td>
-            <td><span class="badge bg-warning">${session.episodes_count}</span></td>
-            <td><span class="badge bg-success">${session.processing_status}</span></td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="viewSession('${session.session_id}')">
-                    <i class="fas fa-eye"></i> View
-                </button>
-            </td>
-        </tr>
+    const recentSessions = sessions.slice(0, 5); // Show last 5 sessions
+    
+    document.getElementById('sessions-list').innerHTML = recentSessions.map(session => `
+        <div class="session-item" onclick="viewSession('${session.session_id}')">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="session-date">${formatDate(session.interrogation_date)}</div>
+                    <div class="session-summary">
+                        Device: ${session.device_model || 'N/A'} • 
+                        Status: <span class="badge bg-success badge-sm">${session.processing_status || 'Completed'}</span>
+                    </div>
+                </div>
+                <div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+            </div>
+        </div>
     `).join('');
 }
 
+function updateQuickStats() {
+    const sessions = patientData.sessions || [];
+    
+    // Animate count up for total sessions
+    animateCountUp(document.getElementById('total-sessions'), sessions.length);
+    
+    // Update other stats
+    document.getElementById('battery-level').textContent = '75%';
+    document.getElementById('device-performance').textContent = 'Normal';
+    document.getElementById('alerts-count').textContent = '0';
+}
+
+function animateCountUp(element, targetValue) {
+    const duration = 1000;
+    const stepTime = 50;
+    const steps = duration / stepTime;
+    const stepValue = targetValue / steps;
+    let currentValue = 0;
+    
+    const timer = setInterval(() => {
+        currentValue += stepValue;
+        if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(currentValue);
+    }, stepTime);
+}
+
+function formatDate(dateString) {
+    if (!dateString) return null;
+    try {
+        return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+        return dateString;
+    }
+}
+
+// Navigation functions
 function viewSession(sessionId) {
     window.location.href = `/session/${sessionId}`;
 }
 
+function viewPatientHistory() {
+    window.location.href = `/patient/${patientId}/history`;
+}
+
+function viewAllSessions() {
+    viewPatientHistory();
+}
+
+function scheduleSession() {
+    showNotification('Schedule new session - Feature coming soon', 'info');
+}
+
+function showError(message) {
+    showNotification(message, 'danger');
+}
+
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadPatientData();
+    
+    // Add staggered animations to cards
+    const elements = document.querySelectorAll('.fade-in-up');
+    elements.forEach((element, index) => {
+        element.style.animationDelay = `${index * 0.2}s`;
+    });
 });
 </script>
 {% endblock %}

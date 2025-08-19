@@ -398,4 +398,142 @@ if __name__ == '__main__':
     print(f"🕐 Started at: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
     print("🔧 Debug mode enabled - Check console for detailed logs")
     
+    # Add mock data endpoint for testing
+    @app.route('/api/session/mock/<session_id>')
+    def get_mock_session_details(session_id):
+        """Return mock session data for testing UI changes"""
+        if 'user' not in session:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        return jsonify({
+            'session': {
+                'session_id': session_id,
+                'interrogation_date': '2025-08-19T10:30:00',
+                'session_type': 'routine',
+                'physician_name': 'Dr. Smith',
+                'processing_status': 'Completed'
+            },
+            'patient': {
+                'name': 'John Doe',
+                'date_of_birth': '1965-03-15',
+                'medical_record_number': 'MRN123456',
+                'physician': 'Dr. Smith'
+            },
+            'device': {
+                'model': 'Medtronic ICD Model X',
+                'serial_number': 'ABC123456',
+                'manufacturer': 'Medtronic',
+                'device_type': 'ICD',
+                'implant_date': '2023-01-15T00:00:00'
+            },
+            'parameters': [
+                {
+                    'category': 'Pacing',
+                    'name': 'A Pacing %',
+                    'value': '18',
+                    'units': '%',
+                    'normal_range': '0-50%',
+                    'is_changed': False
+                },
+                {
+                    'category': 'Pacing',
+                    'name': 'V Pacing %', 
+                    'value': '42',
+                    'units': '%',
+                    'normal_range': '0-100%',
+                    'is_changed': False
+                }
+            ],
+            'measurements': [
+                {
+                    'type': 'Impedance',
+                    'lead_location': 'Atrial',
+                    'value': 456.0,
+                    'units': 'Ω',
+                    'normal_range': '200-1500Ω',
+                    'status': 'Normal',
+                    'test_conditions': 'Standard'
+                },
+                {
+                    'type': 'Impedance',
+                    'lead_location': 'RV',
+                    'value': 399.0,
+                    'units': 'Ω',
+                    'normal_range': '200-1500Ω', 
+                    'status': 'Normal',
+                    'test_conditions': 'Standard'
+                },
+                {
+                    'type': 'Impedance',
+                    'lead_location': 'Defibrillation',
+                    'value': 71.0,
+                    'units': 'Ω',
+                    'normal_range': '25-100Ω',
+                    'status': 'Normal', 
+                    'test_conditions': 'Standard'
+                },
+                {
+                    'type': 'Threshold',
+                    'lead_location': 'Atrial',
+                    'value': 0.5,
+                    'units': 'V',
+                    'normal_range': '0.1-2.0V',
+                    'status': 'Normal',
+                    'test_conditions': 'Capture'
+                },
+                {
+                    'type': 'Threshold',
+                    'lead_location': 'RV',
+                    'value': 0.75,
+                    'units': 'V',
+                    'normal_range': '0.1-3.0V',
+                    'status': 'Normal',
+                    'test_conditions': 'Capture'
+                },
+                {
+                    'type': 'Sensing',
+                    'lead_location': 'Atrial',
+                    'value': 2.3,
+                    'units': 'mV',
+                    'normal_range': '1.0-5.0mV',
+                    'status': 'Normal',
+                    'test_conditions': 'Intrinsic'
+                },
+                {
+                    'type': 'Sensing',
+                    'lead_location': 'RV', 
+                    'value': 8.7,
+                    'units': 'mV',
+                    'normal_range': '5.0-15.0mV',
+                    'status': 'Normal',
+                    'test_conditions': 'Intrinsic'
+                }
+            ],
+            'episodes': [
+                {
+                    'type': 'VT',
+                    'count': 3,
+                    'since_last': 1,
+                    'total': 15,
+                    'therapy_delivered': 2,
+                    'therapy_type': 'ATP'
+                },
+                {
+                    'type': 'VF',
+                    'count': 0,
+                    'since_last': 0,
+                    'total': 2,
+                    'therapy_delivered': 0,
+                    'therapy_type': None
+                }
+            ],
+            'device_status': {
+                'battery_voltage': 2.8,
+                'battery_status': 'Good',
+                'remaining_months': 18,
+                'overall_status': 'Normal',
+                'device_alerts': []
+            }
+        })
+    
     app.run(debug=True, host='0.0.0.0', port=5000)

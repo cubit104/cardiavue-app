@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardiAVue - Medical Dashboard Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .heartbeat {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .heartbeat:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .heartbeat:nth-child(2) {
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .heartbeat:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.1;
+            }
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+                opacity: 0.2;
+            }
+        }
+
+        /* Login Container */
+        .login-container {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            animation: slideUp 0.6s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo and Title */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+            }
+        }
+
+        .logo svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .password-input {
+            position: relative;
+        }
+
+        .show-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error Message */
+        .error-message {
+            display: none;
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            animation: shake 0.5s;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Test Credentials Box */
+        .test-credentials {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f4ff;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .test-credentials h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        /* Time Display */
+        .time-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="heartbeat">
+            <svg viewBox="0 0 100 100" fill="white">
+                <path d="M50,85 C25,65 0,50 0,30 C0,10 15,0 30,0 C40,0 50,5 50,15 C50,5 60,0 70,0 C85,0 100,10 100,30 C100,50 75,65 50,85 Z"/>
+            </svg>
+        </div>
+        <div class="heartbeat">
+            <svg viewBox="0 0 100 100" fill="white">
+                <path d="M50,85 C25,65 0,50 0,30 C0,10 15,0 30,0 C40,0 50,5 50,15 C50,5 60,0 70,0 C85,0 100,10 100,30 C100,50 75,65 50,85 Z"/>
+            </svg>
+        </div>
+        <div class="heartbeat">
+            <svg viewBox="0 0 100 100" fill="white">
+                <path d="M50,85 C25,65 0,50 0,30 C0,10 15,0 30,0 C40,0 50,5 50,15 C50,5 60,0 70,0 C85,0 100,10 100,30 C100,50 75,65 50,85 Z"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Time Display -->
+    <div class="time-display" id="timeDisplay"></div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="logo-section">
+            <div class="logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/>
+                </svg>
+            </div>
+            <h1>CardiAVue</h1>
+            <p class="subtitle">Medtronic Clinical Dashboard</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-input">
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                    <span class="show-password" onclick="togglePassword()">👁️</span>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Sign In</button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #666;">Authenticating...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                Invalid username or password. Please try again.
+            </div>
+        </form>
+
+        <div class="test-credentials">
+            <h3>🔐 Test Credentials</h3>
+            <div class="credential-item">
+                <span>Doctor:</span>
+                <span><strong>doctor</strong> / pass123</span>
+            </div>
+            <div class="credential-item">
+                <span>Nurse:</span>
+                <span><strong>nurse</strong> / pass123</span>
+            </div>
+            <div class="credential-item">
+                <span>Admin:</span>
+                <span><strong>admin</strong> / admin123</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update time display
+        function updateTime() {
+            const now = new Date();
+            const utcString = now.toISOString().replace('T', ' ').substring(0, 19);
+            document.getElementById('timeDisplay').textContent = 'UTC: ' + utcString;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+        }
+
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Hide error message
+            errorMessage.classList.remove('active');
+            
+            // Show loading
+            loading.classList.add('active');
+            
+            // Simulate authentication delay
+            setTimeout(() => {
+                // Check credentials (for testing)
+                const validCredentials = [
+                    {username: 'doctor', password: 'pass123'},
+                    {username: 'nurse', password: 'pass123'},
+                    {username: 'admin', password: 'admin123'},
+                    {username: 'cubit104', password: 'medtronic'}
+                ];
+                
+                const isValid = validCredentials.some(cred => 
+                    cred.username === username && cred.password === password
+                );
+                
+                loading.classList.remove('active');
+                
+                if (isValid) {
+                    // Store user info
+                    sessionStorage.setItem('currentUser', username);
+                    sessionStorage.setItem('loginTime', new Date().toISOString());
+                    
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    // Show error
+                    errorMessage.classList.add('active');
+                }
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: cardiavue-app
+    runtime: python
+    buildCommand: "pip install -r card/dashboard/requirements.txt"
+    startCommand: "python card/dashboard/app.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0

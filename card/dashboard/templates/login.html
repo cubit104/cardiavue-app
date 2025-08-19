@@ -173,10 +173,10 @@
         .show-password {
             position: absolute;
             right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 12px;
             cursor: pointer;
             color: #999;
+            user-select: none;
         }
 
         /* Submit Button */
@@ -203,32 +203,6 @@
             transform: translateY(0);
         }
 
-        /* Loading Animation */
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Error Message */
         .error-message {
             display: none;
@@ -238,17 +212,7 @@
             border-radius: 8px;
             margin-top: 10px;
             font-size: 14px;
-            animation: shake 0.5s;
-        }
-
-        .error-message.active {
-            display: block;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            text-align: center;
         }
 
         /* Test Credentials Box */
@@ -276,6 +240,13 @@
             border-radius: 5px;
         }
 
+        .credential-item code {
+            background: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
         /* Time Display */
         .time-display {
             position: absolute;
@@ -284,6 +255,28 @@
             color: white;
             font-size: 12px;
             opacity: 0.8;
+        }
+
+        /* Quick fill buttons */
+        .quick-fill {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 8px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #e0e0e0;
         }
     </style>
 </head>
@@ -322,40 +315,55 @@
             <p class="subtitle">Medtronic Clinical Dashboard</p>
         </div>
 
-     <form id="loginForm" action="/login" method="POST">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required autocomplete="username">
-        </div>
-    
-        <div class="form-group">
-            <label for="password">Password</label>
-            <div class="password-input">
-                <input type="password" id="password" name="password" required autocomplete="current-password">
-                <span class="show-password" onclick="togglePassword()">👁️</span>
+        <!-- Simple HTML Form - No JavaScript needed for submission -->
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
             </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-input">
+                    <input type="password" id="password" name="password" required>
+                    <span class="show-password" onclick="togglePassword()">👁️</span>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Sign In</button>
+        </form>
+
+        <!-- Quick fill buttons for testing -->
+        <div class="quick-fill">
+            <button class="quick-btn" onclick="fillCredentials('cubit104', 'medtronic')">Fill: cubit104</button>
+            <button class="quick-btn" onclick="fillCredentials('doctor', 'pass123')">Fill: Doctor</button>
+            <button class="quick-btn" onclick="fillCredentials('admin', 'admin123')">Fill: Admin</button>
         </div>
-    
-        <button type="submit" class="submit-btn">Sign In</button>
-    
-        <div class="error-message" id="errorMessage">
+
+        <!-- Error message if login fails -->
+        {% if request.args.get('error') == '1' %}
+        <div class="error-message" style="display: block;">
             Invalid username or password. Please try again.
         </div>
-    </form>
+        {% endif %}
 
         <div class="test-credentials">
             <h3>🔐 Test Credentials</h3>
             <div class="credential-item">
                 <span>Doctor:</span>
-                <span><strong>doctor</strong> / pass123</span>
+                <span><code>doctor</code> / <code>pass123</code></span>
             </div>
             <div class="credential-item">
                 <span>Nurse:</span>
-                <span><strong>nurse</strong> / pass123</span>
+                <span><code>nurse</code> / <code>pass123</code></span>
             </div>
             <div class="credential-item">
                 <span>Admin:</span>
-                <span><strong>admin</strong> / admin123</span>
+                <span><code>admin</code> / <code>admin123</code></span>
+            </div>
+            <div class="credential-item">
+                <span>You:</span>
+                <span><code>cubit104</code> / <code>medtronic</code></span>
             </div>
         </div>
     </div>
@@ -375,52 +383,22 @@
             const passwordInput = document.getElementById('password');
             const type = passwordInput.type === 'password' ? 'text' : 'password';
             passwordInput.type = type;
+            
+            // Change eye icon
+            const icon = document.querySelector('.show-password');
+            icon.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
         }
 
-        // Handle login form submission
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const loading = document.getElementById('loading');
-            const errorMessage = document.getElementById('errorMessage');
-            
-            // Hide error message
-            errorMessage.classList.remove('active');
-            
-            // Show loading
-            loading.classList.add('active');
-            
-            // Simulate authentication delay
-            setTimeout(() => {
-                // Check credentials (for testing)
-                const validCredentials = [
-                    {username: 'doctor', password: 'pass123'},
-                    {username: 'nurse', password: 'pass123'},
-                    {username: 'admin', password: 'admin123'},
-                    {username: 'cubit104', password: 'medtronic'}
-                ];
-                
-                const isValid = validCredentials.some(cred => 
-                    cred.username === username && cred.password === password
-                );
-                
-                loading.classList.remove('active');
-                
-                if (isValid) {
-                    // Store user info
-                    sessionStorage.setItem('currentUser', username);
-                    sessionStorage.setItem('loginTime', new Date().toISOString());
-                    
-                    // Redirect to dashboard
-                    window.location.href = '/dashboard';
-                } else {
-                    // Show error
-                    errorMessage.classList.add('active');
-                }
-            }, 1500);
-        });
+        // Quick fill credentials for testing
+        function fillCredentials(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+        }
+
+        // Auto-focus username field
+        window.onload = function() {
+            document.getElementById('username').focus();
+        }
     </script>
 </body>
 </html>

@@ -1,1076 +1,750 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Session Details - Medtronic Clinical Dashboard</title>
+{% extends "base.html" %}
+
+{% block title %}Session Details - CardiVue{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1" style="font-weight: 700; color: var(--text-primary);">
+            <i class="fas fa-chart-line me-3" style="color: var(--primary-dark);"></i>Session Analytics
+        </h2>
+        <p class="text-muted mb-0">Detailed cardiac device session analysis and measurements</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" onclick="window.history.back()">
+            <i class="fas fa-arrow-left me-2"></i> Back
+        </button>
+        <button class="btn btn-primary" onclick="exportReport()">
+            <i class="fas fa-download me-2"></i> Export Report
+        </button>
+    </div>
+</div>
+
+<style>
+    .clinical-section {
+        background: var(--bg-lighter);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin: 20px 0;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition-normal);
+    }
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    .clinical-section:hover {
+        box-shadow: var(--shadow-lg);
+    }
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 20px 0;
+        background: var(--bg-lighter);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition-normal);
+    }
     
-    <!-- Chart.js 2.9.4 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+    .chart-container:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
     
-    <style>
-        .clinical-section {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 15px 0;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin: 15px 0;
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .small-chart {
-            height: 250px;
-        }
-        
-        .measurement-card {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 15px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .time-controls {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        
-        .battery-container {
-            background: #e9ecef;
-            border: 2px solid #6c757d;
-            border-radius: 8px;
-            height: 40px;
-            position: relative;
-            margin: 15px 0;
-            overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .battery-fill {
-            height: 100%;
-            transition: width 1.2s ease;
-            background: linear-gradient(90deg, #28a745 0%, #20c997 50%, #17a2b8 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            position: relative;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
-        }
-        
-        .battery-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #495057;
-            font-weight: bold;
-            z-index: 10;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-        }
-        
-        .param-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        .param-item {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .param-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-        }
-        
-        .param-changed {
-            border-left: 4px solid #ffc107;
-            background: linear-gradient(135deg, #fffbf0 0%, #fff8e1 100%);
-        }
-        
-        .therapy-zone {
-            height: 35px;
-            border-radius: 8px;
-            position: relative;
-            margin: 12px 0;
-            border: 1px solid #dee2e6;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .zone-marker {
-            position: absolute;
-            top: -8px;
-            height: 50px;
-            width: 3px;
-            background: #000;
-            z-index: 5;
-            border-radius: 2px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .chart-legend {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 0.9rem;
-        }
-        
-        .trend-indicator {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-left: 8px;
-        }
-        
-        .trend-up { background: #d4edda; color: #155724; }
-        .trend-down { background: #f8d7da; color: #721c24; }
-        .trend-stable { background: #d1ecf1; color: #0c5460; }
-    </style>
-</head>
-<body>
-    <div class="container-fluid p-4">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-heartbeat me-2 text-primary"></i>Medtronic Clinical Session Report</h2>
-            <div>
-                <span class="badge bg-info me-2">
-                    <i class="fas fa-user me-1"></i>cubit104
-                </span>
-                <span class="badge bg-secondary me-2">
-                    <i class="fas fa-clock me-1"></i><span id="current-time">2025-08-18 00:05:03</span>
-                </span>
-                <button class="btn btn-secondary" onclick="window.history.back()">
-                    <i class="fas fa-arrow-left me-1"></i> Back
-                </button>
-                <button class="btn btn-success" onclick="exportReport()">
-                    <i class="fas fa-download me-1"></i> Export
-                </button>
-            </div>
+    .small-chart {
+        height: 280px;
+    }
+    
+    .measurement-card {
+        background: var(--bg-lighter);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin: 20px 0;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition-normal);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .measurement-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: var(--transition-fast);
+    }
+    
+    .measurement-card:hover {
+        box-shadow: var(--shadow-xl);
+        transform: translateY(-4px);
+    }
+    
+    .measurement-card:hover::before {
+        opacity: 1;
+    }
+    
+    .measurement-card h6 {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+    }
+    
+    .time-controls {
+        background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-lighter) 100%);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .battery-container {
+        background: var(--border-medium);
+        border: 2px solid var(--text-secondary);
+        border-radius: var(--radius-md);
+        height: 50px;
+        position: relative;
+        margin: 20px 0;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .battery-fill {
+        height: 100%;
+        transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(90deg, var(--status-normal) 0%, #20c997 50%, var(--status-info) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        position: relative;
+    }
+    
+    .battery-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 49%, rgba(255,255,255,0.2) 50%, transparent 51%);
+        background-size: 20px 20px;
+        animation: shimmer 2s linear infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -20px 0; }
+        100% { background-position: 20px 0; }
+    }
+    
+    .trend-indicator {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: var(--radius-xl);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-left: 8px;
+    }
+    
+    .trend-up { 
+        background: rgba(16, 185, 129, 0.1); 
+        color: var(--status-normal);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .trend-down { 
+        background: rgba(239, 68, 68, 0.1); 
+        color: var(--status-danger);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .trend-stable { 
+        background: rgba(59, 130, 246, 0.1); 
+        color: var(--status-info);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    
+    .chart-legend {
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: 12px;
+        margin: 12px 0;
+        font-size: 0.875rem;
+    }
+    
+    /* Enhanced nav tabs */
+    .nav-tabs {
+        border-bottom: 2px solid var(--border-light);
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+        color: var(--text-secondary);
+        font-weight: 500;
+        padding: 12px 24px;
+        transition: var(--transition-fast);
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border-color: transparent;
+        color: var(--primary-dark);
+        background: var(--bg-light);
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: var(--primary-dark);
+        background: var(--bg-lighter);
+        border-color: var(--primary-dark);
+        border-bottom: 2px solid var(--primary-dark);
+    }
+</style>
+
+<!-- Session Information -->
+<div class="clinical-section mb-4 fade-in-up">
+    <div id="session-info">
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <p class="text-muted mb-0">Loading session data...</p>
         </div>
+    </div>
+</div>
 
-        <!-- Session Information -->
-        <div class="clinical-section mb-4">
-            <div id="session-info">
-                <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading session data...</span>
-                    </div>
-                    <p class="mt-2">Loading session data...</p>
-                </div>
-            </div>
+<!-- Time Range Controls -->
+<div class="time-controls fade-in-up">
+    <div class="d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="fas fa-clock me-2"></i>Analysis Time Range</h6>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary active" onclick="changeTimeRange('6months')">6 Months</button>
+            <button type="button" class="btn btn-outline-primary" onclick="changeTimeRange('1year')">1 Year</button>
+            <button type="button" class="btn btn-outline-primary" onclick="changeTimeRange('2years')">2 Years</button>
+            <button type="button" class="btn btn-outline-primary" onclick="changeTimeRange('all')">All Data</button>
         </div>
+    </div>
+</div>
 
-        <!-- Navigation Tabs -->
-        <ul class="nav nav-tabs mb-4" id="clinicalTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="lead-performance-tab" data-bs-toggle="tab" data-bs-target="#lead-performance" type="button">
-                    <i class="fas fa-chart-line me-1"></i> Lead Performance
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="cardiac-compass-tab" data-bs-toggle="tab" data-bs-target="#cardiac-compass" type="button">
-                    <i class="fas fa-compass me-1"></i> Cardiac Compass
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="parameters-tab" data-bs-toggle="tab" data-bs-target="#parameters" type="button">
-                    <i class="fas fa-cogs me-1"></i> Programming
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="episodes-tab" data-bs-toggle="tab" data-bs-target="#episodes" type="button">
-                    <i class="fas fa-bolt me-1"></i> Episodes & Therapy
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="device-status-tab" data-bs-toggle="tab" data-bs-target="#device-status" type="button">
-                    <i class="fas fa-battery-half me-1"></i> Device Status
-                </button>
-            </li>
-        </ul>
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs mb-4 fade-in-up" id="clinicalTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="lead-performance-tab" data-bs-toggle="tab" data-bs-target="#lead-performance" type="button">
+            <i class="fas fa-chart-line me-2"></i> Lead Performance
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="cardiac-compass-tab" data-bs-toggle="tab" data-bs-target="#cardiac-compass" type="button">
+            <i class="fas fa-compass me-2"></i> Cardiac Compass
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="parameters-tab" data-bs-toggle="tab" data-bs-target="#parameters" type="button">
+            <i class="fas fa-cogs me-2"></i> Programming
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="episodes-tab" data-bs-toggle="tab" data-bs-target="#episodes" type="button">
+            <i class="fas fa-bolt me-2"></i> Episodes & Therapy
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="device-status-tab" data-bs-toggle="tab" data-bs-target="#device-status" type="button">
+            <i class="fas fa-battery-half me-2"></i> Device Status
+        </button>
+    </li>
+</ul>
 
-        <!-- Tab Content -->
-        <div class="tab-content" id="clinicalTabsContent">
-            
-            <!-- Lead Performance Tab -->
-            <div class="tab-pane fade show active" id="lead-performance" role="tabpanel">
-                <div class="clinical-section">
-                    <h5><i class="fas fa-chart-line me-2"></i>Lead Measurements Over Time</h5>
-                    
-                    <div class="time-controls">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <label class="form-label"><strong><i class="fas fa-calendar me-1"></i>Time Range:</strong></label>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="changeTimeRange('1week')">1 Week</button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="changeTimeRange('1month')">1 Month</button>
-                                    <button type="button" class="btn btn-primary btn-sm" onclick="changeTimeRange('3months')">3 Months</button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="changeTimeRange('6months')">6 Months</button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="changeTimeRange('1year')">1 Year</button>
-                                </div>
-                            </div>
-                        </div>
+<!-- Tab Content -->
+<div class="tab-content" id="clinicalTabContent">
+    <!-- Lead Performance Tab -->
+    <div class="tab-pane fade show active" id="lead-performance" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="measurement-card">
+                    <h6><i class="fas fa-heartbeat me-2 text-danger"></i>Lead Impedance Trends</h6>
+                    <div class="chart-container">
+                        <canvas id="leadImpedanceChart"></canvas>
                     </div>
-                    
-                    <div class="measurement-card">
-                        <h6><i class="fas fa-bolt me-2 text-warning"></i>Pacing Impedance Trends</h6>
-                        <div class="chart-container">
-                            <canvas id="impedanceChart"></canvas>
-                        </div>
-                        <div class="chart-legend" id="impedance-legend"></div>
-                    </div>
-                    
-                    <div class="measurement-card">
-                        <h6><i class="fas fa-heartbeat me-2 text-danger"></i>Capture Threshold Trends</h6>
-                        <div class="chart-container">
-                            <canvas id="thresholdChart"></canvas>
-                        </div>
-                        <div class="chart-legend" id="threshold-legend"></div>
-                    </div>
-                    
-                    <div class="measurement-card">
-                        <h6><i class="fas fa-signal me-2 text-info"></i>Sensing Amplitude Trends</h6>
-                        <div class="chart-container">
-                            <canvas id="sensingChart"></canvas>
-                        </div>
-                        <div class="chart-legend" id="sensing-legend"></div>
-                    </div>
-                    
-                    <div class="measurement-card">
-                        <h6><i class="fas fa-table me-2"></i>Current Lead Values Summary</h6>
-                        <div id="measurements-table"></div>
+                    <div class="chart-legend" id="impedance-legend">
+                        <strong>Clinical Notes:</strong> Lead impedance values within normal ranges. No significant variations detected.
                     </div>
                 </div>
             </div>
-
-            <!-- Cardiac Compass Tab -->
-            <div class="tab-pane fade" id="cardiac-compass" role="tabpanel">
-                <div class="clinical-section">
-                    <h5><i class="fas fa-compass me-2"></i>Cardiac Compass Trends</h5>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-heartbeat me-2 text-danger"></i>AT/AF Burden Over Time</h6>
-                                <div class="chart-container small-chart">
-                                    <canvas id="atafChart"></canvas>
-                                </div>
-                                <div class="chart-legend" id="ataf-legend"></div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-percentage me-2 text-primary"></i>Ventricular Pacing Trend</h6>
-                                <div class="chart-container small-chart">
-                                    <canvas id="vpacingChart"></canvas>
-                                </div>
-                                <div class="chart-legend" id="vpacing-legend"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-walking me-2 text-success"></i>Patient Activity Levels</h6>
-                                <div class="chart-container small-chart">
-                                    <canvas id="activityChart"></canvas>
-                                </div>
-                                <div class="chart-legend" id="activity-legend"></div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-chart-line me-2 text-info"></i>Heart Rate Variability</h6>
-                                <div class="chart-container small-chart">
-                                    <canvas id="hrvChart"></canvas>
-                                </div>
-                                <div class="chart-legend" id="hrv-legend"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Programming Parameters Tab -->
-            <div class="tab-pane fade" id="parameters" role="tabpanel">
-                <div class="clinical-section">
-                    <h5><i class="fas fa-cogs me-2"></i>Device Programming Parameters</h5>
-                    <div id="parameters-content">
+            <div class="col-lg-4">
+                <div class="measurement-card">
+                    <h6><i class="fas fa-tachometer-alt me-2 text-info"></i>Threshold Summary</h6>
+                    <div id="threshold-summary" class="py-4">
                         <div class="text-center">
                             <div class="spinner-border text-primary" role="status"></div>
-                            <p class="mt-2">Loading parameters...</p>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Episodes Tab -->
-            <div class="tab-pane fade" id="episodes" role="tabpanel">
-                <div class="clinical-section">
-                    <h5><i class="fas fa-bolt me-2"></i>Episodes & Therapy Management</h5>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-8">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-layer-group me-2"></i>Detection Zones Configuration</h6>
-                                <div id="therapy-zones-display"></div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-bolt me-2"></i>Therapy Settings</h6>
-                                <div id="therapy-settings"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-chart-line me-2"></i>Episode Trends Over Time</h6>
-                                <div class="chart-container small-chart">
-                                    <canvas id="episodesChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
+        </div>
+    </div>
+    
+    <!-- Cardiac Compass Tab -->
+    <div class="tab-pane fade" id="cardiac-compass" role="tabpanel">
+        <div class="clinical-section">
+            <h5><i class="fas fa-compass me-2"></i>Cardiac Compass Trends</h5>
+            <div class="row">
+                <div class="col-md-6">
                     <div class="measurement-card">
-                        <h6><i class="fas fa-table me-2"></i>Episode Summary</h6>
-                        <div id="episodes-table"></div>
+                        <h6><i class="fas fa-heartbeat me-2 text-danger"></i>AT/AF Burden Over Time</h6>
+                        <div class="chart-container small-chart">
+                            <canvas id="atafChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="ataf-legend"></div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Device Status Tab -->
-            <div class="tab-pane fade" id="device-status" role="tabpanel">
-                <div class="clinical-section">
-                    <h5><i class="fas fa-battery-half me-2"></i>Device Status & Longevity Analysis</h5>
-                    
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-chart-line me-2"></i>Battery Longevity Projection</h6>
-                                <div class="chart-container">
-                                    <canvas id="batteryChart"></canvas>
-                                </div>
-                                <div class="chart-legend">
-                                    Projected replacement: <strong id="replacement-date"></strong>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="measurement-card">
-                                <h6><i class="fas fa-battery-full me-2"></i>Battery Status</h6>
-                                <div id="battery-status"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
+                <div class="col-md-6">
                     <div class="measurement-card">
-                        <h6><i class="fas fa-info-circle me-2"></i>Device Information & Follow-up</h6>
-                        <div id="device-info"></div>
+                        <h6><i class="fas fa-percentage me-2 text-primary"></i>Ventricular Pacing Trend</h6>
+                        <div class="chart-container small-chart">
+                            <canvas id="vpacingChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="vpacing-legend"></div>
                     </div>
                 </div>
             </div>
             
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-walking me-2 text-success"></i>Patient Activity Levels</h6>
+                        <div class="chart-container small-chart">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="activity-legend"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-chart-line me-2 text-info"></i>Heart Rate Variability</h6>
+                        <div class="chart-container small-chart">
+                            <canvas id="hrvChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="hrv-legend"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        // Get session ID from URL
-        function getSessionIdFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const sessionId = urlParams.get('session_id') || urlParams.get('id') || urlParams.get('sessionId');
-            console.log('Session ID from URL:', sessionId);
-            return sessionId;
-        }
-
-        // Global variables
-        let sessionData = null;
-        let sessionId = getSessionIdFromURL();
-        let currentTimeRange = '3months';
-        let charts = {};
-
-        // Log initial state
-        console.log('Current Time: 2025-08-18 00:05:03 UTC');
-        console.log('User: cubit104');
-        console.log('Session ID:', sessionId);
-
-        // Update current time
-        function updateTime() {
-            const now = new Date();
-            const utcString = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
-            const timeElement = document.getElementById('current-time');
-            if (timeElement) {
-                timeElement.textContent = utcString;
-            }
-        }
-        setInterval(updateTime, 1000);
-
-        // Wait for Chart.js
-        function waitForChart() {
-            return new Promise((resolve) => {
-                if (typeof Chart !== 'undefined') {
-                    console.log('Chart.js loaded');
-                    resolve();
-                } else {
-                    setTimeout(() => waitForChart().then(resolve), 100);
-                }
-            });
-        }
-
-        // Load session data from API
-        async function loadSessionData() {
-            try {
-                console.log('Starting loadSessionData...');
-                
-                if (!sessionId) {
-                    const pathParts = window.location.pathname.split('/');
-                    sessionId = pathParts[pathParts.length - 1];
-                    
-                    if (!sessionId || sessionId.includes('.html')) {
-                        throw new Error('No session ID found in URL');
-                    }
-                }
-
-                console.log('Fetching session:', sessionId);
-
-                document.getElementById('session-info').innerHTML = `
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
+    <!-- Programming Parameters Tab -->
+    <div class="tab-pane fade" id="parameters" role="tabpanel">
+        <div class="clinical-section">
+            <h5><i class="fas fa-cogs me-2"></i>Device Programming Parameters</h5>
+            <div id="parameters-content">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Loading programming parameters...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Episodes & Therapy Tab -->
+    <div class="tab-pane fade" id="episodes" role="tabpanel">
+        <div class="clinical-section">
+            <h5><i class="fas fa-bolt me-2"></i>Arrhythmia Episodes & Therapy Delivery</h5>
+            <div id="episodes-content">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Loading episode data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Device Status Tab -->
+    <div class="tab-pane fade" id="device-status" role="tabpanel">
+        <div class="clinical-section">
+            <h5><i class="fas fa-battery-half me-2"></i>Device Status & Battery Life</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-battery-three-quarters me-2 text-success"></i>Battery Status</h6>
+                        <div class="battery-container">
+                            <div class="battery-fill" id="battery-fill" style="width: 75%;">
+                                75% Remaining
+                            </div>
                         </div>
-                        <p class="mt-2">Loading session: ${sessionId}</p>
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between">
+                                <span><strong>Estimated Replacement:</strong></span>
+                                <span class="badge bg-success">18 months</span>
+                            </div>
+                        </div>
                     </div>
-                `;
-
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-                const response = await fetch(`/api/session/${sessionId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-User': 'cubit104',
-                        'X-Timestamp': '2025-08-18T00:05:03Z'
-                    },
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                console.log('API Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`API Error ${response.status}: ${errorText || response.statusText}`);
-                }
-                
-                const responseText = await response.text();
-                sessionData = JSON.parse(responseText);
-                
-                console.log('Data received:', Object.keys(sessionData || {}));
-                
-                // Normalize data structure
-                if (!sessionData.session && sessionData.id) {
-                    sessionData = {
-                        session: {
-                            id: sessionData.id,
-                            interrogation_date: sessionData.interrogation_date || sessionData.date || new Date().toISOString()
-                        },
-                        patient: sessionData.patient || {},
-                        device: sessionData.device || {},
-                        measurements: sessionData.measurements || [],
-                        parameters: sessionData.parameters || [],
-                        episodes: sessionData.episodes || [],
-                        device_status: sessionData.device_status || sessionData.status || {}
-                    };
-                }
-                
-                // Ensure arrays
-                sessionData.measurements = Array.isArray(sessionData.measurements) ? sessionData.measurements : [];
-                sessionData.parameters = Array.isArray(sessionData.parameters) ? sessionData.parameters : [];
-                sessionData.episodes = Array.isArray(sessionData.episodes) ? sessionData.episodes : [];
-                
-                console.log('Measurements:', sessionData.measurements.length);
-                console.log('Parameters:', sessionData.parameters.length);
-                console.log('Episodes:', sessionData.episodes.length);
-                
-                // Render all sections
-                renderSessionInfo();
-                renderLeadPerformance();
-                renderCardiacCompass();
-                renderParameters();
-                renderEpisodes();
-                renderDeviceStatus();
-                
-                console.log('All sections rendered');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                
-                document.getElementById('session-info').innerHTML = `
-                    <div class="alert alert-danger">
-                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Failed to Load Session</h5>
-                        <p>${error.message}</p>
-                        <button class="btn btn-primary mt-2" onclick="retryLoad()">
-                            <i class="fas fa-redo me-1"></i> Retry
-                        </button>
-                        <button class="btn btn-secondary mt-2 ms-2" onclick="window.history.back()">
-                            <i class="fas fa-arrow-left me-1"></i> Back
-                        </button>
+                </div>
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-microchip me-2 text-info"></i>Device Information</h6>
+                        <div id="device-info">
+                            <div class="text-center py-3">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
+                        </div>
                     </div>
-                `;
-            }
-        }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-        // Retry function
-        function retryLoad() {
-            loadSessionData();
-        }
+{% block scripts %}
+<script>
+// Global variables
+let sessionData = null;
+let currentTimeRange = '6months';
+let charts = {};
+let sessionId = null;
 
-        // Helper functions
-        function generateTimeLabels(range) {
-            const labels = [];
-            const now = new Date('2025-08-18T00:05:03Z');
-            let points = 20;
-            let days = 90;
+// Wait for Chart.js to load
+function waitForChart() {
+    return new Promise((resolve) => {
+        if (typeof Chart !== 'undefined') {
+            console.log('Chart.js loaded');
+            resolve();
+        } else {
+            setTimeout(() => waitForChart().then(resolve), 100);
+        }
+    });
+}
+
+// Load session data from API
+async function loadSessionData() {
+    try {
+        console.log('Starting loadSessionData...');
+        
+        if (!sessionId) {
+            const pathParts = window.location.pathname.split('/');
+            sessionId = pathParts[pathParts.length - 1];
             
-            switch(range) {
-                case '1week': days = 7; break;
-                case '1month': days = 30; break;
-                case '3months': days = 90; break;
-                case '6months': days = 180; break;
-                case '1year': days = 365; break;
+            if (!sessionId || sessionId.includes('.html')) {
+                throw new Error('No session ID found in URL');
             }
-            
-            for (let i = 0; i < points; i++) {
-                const date = new Date(now);
-                date.setDate(date.getDate() - Math.floor(days * (points - i - 1) / points));
-                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-            }
-            
-            return labels;
         }
 
-        function generateTrendData(points, baseValue, variance = 0.1) {
-            const data = [];
-            for (let i = 0; i < points; i++) {
-                const trend = (i / points) * 0.05 * baseValue;
-                const variation = (Math.random() - 0.5) * variance * baseValue;
-                data.push(Math.max(0, parseFloat((baseValue + trend + variation).toFixed(2))));
-            }
-            return data;
+        console.log('Fetching session:', sessionId);
+
+        showLoading(document.getElementById('session-info'));
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        const response = await fetch(`/api/session/${sessionId}`, {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        function getColorForLead(lead) {
-            const leadStr = (lead || '').toString().toLowerCase();
-            if (leadStr.includes('atrial') || leadStr.includes('a')) return '#007bff';
-            if (leadStr.includes('rv') || leadStr.includes('right')) return '#28a745';
-            if (leadStr.includes('lv') || leadStr.includes('left')) return '#ffc107';
-            if (leadStr.includes('defib') || leadStr.includes('coil')) return '#dc3545';
-            return '#6c757d';
-        }
+        sessionData = await response.json();
+        console.log('Session data loaded:', sessionData);
 
-        // Create line chart helper
-        function createLineChart(canvasId, datasets, yAxisLabel, yMin = 0, yMax = null) {
-            const ctx = document.getElementById(canvasId);
-            if (!ctx) {
-                console.log('Canvas not found:', canvasId);
-                return null;
-            }
+        renderSessionInfo();
+        renderLeadPerformance();
+        renderCardiacCompass();
+        renderDeviceStatus();
+        
+    } catch (error) {
+        console.error('Error loading session data:', error);
+        document.getElementById('session-info').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Failed to load session data: ${error.message}
+            </div>
+        `;
+    }
+}
 
-            if (charts[canvasId]) {
-                charts[canvasId].destroy();
-            }
+// Render session info
+function renderSessionInfo() {
+    const session = sessionData.session || {};
+    const patient = sessionData.patient || {};
+    const device = sessionData.device || {};
+    
+    document.getElementById('session-info').innerHTML = `
+        <div class="row">
+            <div class="col-md-3">
+                <h6><i class="fas fa-user me-2 text-primary"></i>Patient Information</h6>
+                <table class="table table-sm table-borderless">
+                    <tr><td><strong>Name:</strong></td><td>${patient.name || 'N/A'}</td></tr>
+                    <tr><td><strong>DOB:</strong></td><td>${patient.date_of_birth || 'N/A'}</td></tr>
+                    <tr><td><strong>MRN:</strong></td><td>${patient.medical_record_number || 'N/A'}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-3">
+                <h6><i class="fas fa-calendar me-2 text-info"></i>Session Details</h6>
+                <table class="table table-sm table-borderless">
+                    <tr><td><strong>Date:</strong></td><td>${session.interrogation_date || 'N/A'}</td></tr>
+                    <tr><td><strong>Type:</strong></td><td>${session.session_type || 'Follow-up'}</td></tr>
+                    <tr><td><strong>Duration:</strong></td><td>30 minutes</td></tr>
+                </table>
+            </div>
+            <div class="col-md-3">
+                <h6><i class="fas fa-microchip me-2 text-success"></i>Device Information</h6>
+                <table class="table table-sm table-borderless">
+                    <tr><td><strong>Model:</strong></td><td>${device.device_model || 'N/A'}</td></tr>
+                    <tr><td><strong>Serial:</strong></td><td>${device.serial_number || 'N/A'}</td></tr>
+                    <tr><td><strong>Implant Date:</strong></td><td>${device.implant_date || 'N/A'}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-3">
+                <h6><i class="fas fa-shield-alt me-2 text-warning"></i>Status Summary</h6>
+                <table class="table table-sm table-borderless">
+                    <tr><td><strong>Overall:</strong></td><td><span class="badge bg-success">Normal</span></td></tr>
+                    <tr><td><strong>Battery:</strong></td><td><span class="badge bg-success">Good</span></td></tr>
+                    <tr><td><strong>Leads:</strong></td><td><span class="badge bg-success">Normal</span></td></tr>
+                </table>
+            </div>
+        </div>
+    `;
+}
 
-            try {
-                charts[canvasId] = new Chart(ctx, {
-                    type: 'line',
-                    data: { 
-                        labels: datasets[0].labels,
-                        datasets: datasets.map(ds => ({
-                            label: ds.label,
-                            data: ds.data,
-                            borderColor: ds.color,
-                            backgroundColor: ds.color + '20',
-                            fill: false,
-                            borderWidth: 2,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                            tension: 0.1
-                        }))
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        tooltips: {
-                            mode: 'index',
-                            intersect: false
-                        },
-                        scales: {
-                            xAxes: [{
-                                display: true,
-                                gridLines: {
-                                    display: false
-                                }
-                            }],
-                            yAxes: [{
-                                display: true,
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: yAxisLabel
-                                },
-                                ticks: {
-                                    beginAtZero: true,
-                                    min: yMin,
-                                    max: yMax
-                                }
-                            }]
+// Enhanced chart creation with modern styling
+function createChart(canvasId, datasets, chartType = 'line', yAxisLabel = '', yMin = null, yMax = null) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) {
+        console.error('Canvas not found:', canvasId);
+        return null;
+    }
+
+    // Destroy existing chart if it exists
+    if (charts[canvasId]) {
+        charts[canvasId].destroy();
+    }
+
+    const config = {
+        type: chartType,
+        data: {
+            labels: datasets[0]?.labels || [],
+            datasets: datasets.map(ds => ({
+                label: ds.label,
+                data: ds.data,
+                borderColor: ds.color,
+                backgroundColor: ds.color + '20',
+                fill: false,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointHoverRadius: 8,
+                tension: 0.4,
+                pointBackgroundColor: ds.color,
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }))
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: {
+                            size: 12,
+                            weight: '500'
                         }
                     }
-                });
-                return charts[canvasId];
-            } catch (error) {
-                console.error('Error creating chart:', canvasId, error);
-                return null;
-            }
-        }
-
-        // Render session info
-        function renderSessionInfo() {
-            const session = sessionData.session || {};
-            const patient = sessionData.patient || {};
-            const device = sessionData.device || {};
-            const status = sessionData.device_status || {};
-            
-            document.getElementById('session-info').innerHTML = `
-                <div class="row">
-                    <div class="col-md-3">
-                        <h6><i class="fas fa-user me-2 text-primary"></i>Patient Information</h6>
-                        <table class="table table-sm table-borderless">
-                            <tr><td><strong>Name:</strong></td><td>${patient.name || 'N/A'}</td></tr>
-                            <tr><td><strong>MRN:</strong></td><td>${patient.mrn || 'N/A'}</td></tr>
-                            <tr><td><strong>Date:</strong></td><td>${session.interrogation_date ? new Date(session.interrogation_date).toLocaleDateString() : 'N/A'}</td></tr>
-                        </table>
-                    </div>
-                    <div class="col-md-3">
-                        <h6><i class="fas fa-microchip me-2 text-success"></i>Device Information</h6>
-                        <table class="table table-sm table-borderless">
-                            <tr><td><strong>Model:</strong></td><td>${device.model || 'N/A'}</td></tr>
-                            <tr><td><strong>Serial:</strong></td><td><code>${device.serial_number || 'N/A'}</code></td></tr>
-                            <tr><td><strong>Type:</strong></td><td>${device.device_type || 'ICD'}</td></tr>
-                        </table>
-                    </div>
-                    <div class="col-md-3">
-                        <h6><i class="fas fa-chart-bar me-2 text-info"></i>Data Summary</h6>
-                        <table class="table table-sm table-borderless">
-                            <tr><td><strong>Parameters:</strong></td><td><span class="badge bg-primary">${sessionData.parameters?.length || 0}</span></td></tr>
-                            <tr><td><strong>Measurements:</strong></td><td><span class="badge bg-info">${sessionData.measurements?.length || 0}</span></td></tr>
-                            <tr><td><strong>Episodes:</strong></td><td><span class="badge bg-warning">${sessionData.episodes?.length || 0}</span></td></tr>
-                        </table>
-                    </div>
-                    <div class="col-md-3">
-                        <h6><i class="fas fa-battery-half me-2 text-warning"></i>Device Status</h6>
-                        <table class="table table-sm table-borderless">
-                            <tr><td><strong>Battery:</strong></td><td><span class="badge bg-success">${status.battery_status || 'Good'}</span></td></tr>
-                            <tr><td><strong>Voltage:</strong></td><td>${status.battery_voltage || 'N/A'} V</td></tr>
-                            <tr><td><strong>Longevity:</strong></td><td>${status.remaining_months || 'N/A'} months</td></tr>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Render lead performance
-        function renderLeadPerformance() {
-            console.log('Rendering lead performance...');
-            const measurements = sessionData.measurements || [];
-            const labels = generateTimeLabels(currentTimeRange);
-            
-            // Process measurements
-            const impedanceData = [];
-            const thresholdData = [];
-            const sensingData = [];
-            
-            measurements.forEach(m => {
-                const type = (m.type || '').toLowerCase();
-                const value = parseFloat(m.value) || 0;
-                const lead = m.lead_location || 'Unknown';
-                
-                if (type.includes('impedance')) {
-                    impedanceData.push({ lead, value, units: m.units || 'Ω' });
-                } else if (type.includes('threshold')) {
-                    thresholdData.push({ lead, value, units: m.units || 'V' });
-                } else if (type.includes('sensing') || type.includes('amplitude')) {
-                    sensingData.push({ lead, value, units: m.units || 'mV' });
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true
                 }
-            });
-            
-            // Create charts
-            if (impedanceData.length > 0) {
-                const datasets = impedanceData.map(item => ({
-                    label: `${item.lead} (${item.value}${item.units})`,
-                    labels: labels,
-                    data: generateTrendData(labels.length, item.value, 0.1),
-                    color: getColorForLead(item.lead)
-                }));
-                createLineChart('impedanceChart', datasets, 'Impedance (Ω)', 0, 1500);
-                document.getElementById('impedance-legend').innerHTML = impedanceData.map(item => 
-                    `<span style="color: ${getColorForLead(item.lead)};">●</span> ${item.lead}: <strong>${item.value}${item.units}</strong>`
-                ).join(' | ');
-            } else {
-                createLineChart('impedanceChart', [{
-                    label: 'Atrial Lead',
-                    labels: labels,
-                    data: generateTrendData(labels.length, 456, 0.1),
-                    color: '#007bff'
-                }], 'Impedance (Ω)', 0, 1500);
-                document.getElementById('impedance-legend').innerHTML = 'Demo data - no measurements available';
-            }
-            
-            if (thresholdData.length > 0) {
-                const datasets = thresholdData.map(item => ({
-                    label: `${item.lead} (${item.value}${item.units})`,
-                    labels: labels,
-                    data: generateTrendData(labels.length, item.value, 0.2),
-                    color: getColorForLead(item.lead)
-                }));
-                createLineChart('thresholdChart', datasets, 'Threshold (V)', 0, 3);
-                document.getElementById('threshold-legend').innerHTML = thresholdData.map(item => 
-                    `<span style="color: ${getColorForLead(item.lead)};">●</span> ${item.lead}: <strong>${item.value}${item.units}</strong>`
-                ).join(' | ');
-            } else {
-                createLineChart('thresholdChart', [{
-                    label: 'Threshold',
-                    labels: labels,
-                    data: generateTrendData(labels.length, 0.75, 0.2),
-                    color: '#ffc107'
-                }], 'Threshold (V)', 0, 3);
-                document.getElementById('threshold-legend').innerHTML = 'Demo data - no measurements available';
-            }
-            
-            if (sensingData.length > 0) {
-                const datasets = sensingData.map(item => ({
-                    label: `${item.lead} (${item.value}${item.units})`,
-                    labels: labels,
-                    data: generateTrendData(labels.length, item.value, 0.15),
-                    color: getColorForLead(item.lead)
-                }));
-                createLineChart('sensingChart', datasets, 'Amplitude (mV)', 0, 15);
-                document.getElementById('sensing-legend').innerHTML = sensingData.map(item => 
-                    `<span style="color: ${getColorForLead(item.lead)};">●</span> ${item.lead}: <strong>${item.value}${item.units}</strong>`
-                ).join(' | ');
-            } else {
-                createLineChart('sensingChart', [{
-                    label: 'Sensing',
-                    labels: labels,
-                    data: generateTrendData(labels.length, 6.3, 0.15),
-                    color: '#17a2b8'
-                }], 'Amplitude (mV)', 0, 15);
-                document.getElementById('sensing-legend').innerHTML = 'Demo data - no measurements available';
-            }
-            
-            renderMeasurementsTable(measurements);
-        }
-
-        // Render measurements table
-        function renderMeasurementsTable(measurements) {
-            const tableContainer = document.getElementById('measurements-table');
-            if (!tableContainer) return;
-            
-            if (!measurements || measurements.length === 0) {
-                tableContainer.innerHTML = '<div class="alert alert-info">No measurements available</div>';
-                return;
-            }
-            
-            tableContainer.innerHTML = `
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Lead</th>
-                                <th>Value</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${measurements.map(m => `
-                                <tr>
-                                    <td>${m.type || 'N/A'}</td>
-                                    <td>${m.lead_location || 'N/A'}</td>
-                                    <td><strong>${m.value}${m.units || ''}</strong></td>
-                                    <td><span class="badge bg-success">Normal</span></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-
-        // Render cardiac compass
-        function renderCardiacCompass() {
-            console.log('Rendering cardiac compass...');
-            const labels = generateTimeLabels(currentTimeRange);
-            
-            createLineChart('atafChart', [{
-                label: 'AT/AF Burden (%)',
-                labels: labels,
-                data: generateTrendData(labels.length, 1.2, 0.5),
-                color: '#dc3545'
-            }], 'Burden (%)', 0, 10);
-            document.getElementById('ataf-legend').innerHTML = 'Current burden: <strong>1.2%</strong>';
-            
-            createLineChart('vpacingChart', [{
-                label: 'VP %',
-                labels: labels,
-                data: generateTrendData(labels.length, 15, 5),
-                color: '#007bff'
-            }], 'VP Percentage', 0, 100);
-            document.getElementById('vpacing-legend').innerHTML = 'Current VP: <strong>15%</strong>';
-            
-            createLineChart('activityChart', [{
-                label: 'Activity (hours/day)',
-                labels: labels,
-                data: generateTrendData(labels.length, 1.2, 0.3),
-                color: '#28a745'
-            }], 'Hours/Day', 0, 5);
-            document.getElementById('activity-legend').innerHTML = 'Average: <strong>1.2 hours/day</strong>';
-            
-            createLineChart('hrvChart', [{
-                label: 'HRV (ms)',
-                labels: labels,
-                data: generateTrendData(labels.length, 65, 10),
-                color: '#6610f2'
-            }], 'HRV (ms)', 0, 150);
-            document.getElementById('hrv-legend').innerHTML = 'Average HRV: <strong>65 ms</strong>';
-        }
-
-        // Render parameters
-        function renderParameters() {
-            console.log('Rendering parameters...');
-            const parameters = sessionData.parameters || [];
-            const container = document.getElementById('parameters-content');
-            
-            if (!container) return;
-            
-            if (parameters.length === 0) {
-                container.innerHTML = '<div class="alert alert-info">No parameters available</div>';
-                return;
-            }
-            
-            const grouped = {};
-            parameters.forEach(p => {
-                const cat = p.category || 'General';
-                if (!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push(p);
-            });
-            
-            let html = '';
-            for (const [category, params] of Object.entries(grouped)) {
-                html += `
-                    <div class="measurement-card">
-                        <h6>${category} Parameters</h6>
-                        <div class="param-grid">
-                            ${params.map(p => `
-                                <div class="param-item ${p.is_changed ? 'param-changed' : ''}">
-                                    <h6>${p.name || 'Unknown'}</h6>
-                                    <p class="mb-0">
-                                        <strong class="text-primary">${p.value || 'N/A'}</strong>
-                                        ${p.units || ''}
-                                    </p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            container.innerHTML = html;
-        }
-
-        // Render episodes
-        function renderEpisodes() {
-            console.log('Rendering episodes...');
-            const episodes = sessionData.episodes || [];
-            const labels = generateTimeLabels(currentTimeRange);
-            
-            const zonesContainer = document.getElementById('therapy-zones-display');
-            if (zonesContainer) {
-                zonesContainer.innerHTML = `
-                    <div class="mb-3">
-                        <label><strong>VF Zone: >200 bpm</strong></label>
-                        <div class="therapy-zone" style="background: linear-gradient(to right, #28a745 0%, #ffc107 50%, #dc3545 100%);">
-                            <div class="zone-marker" style="left: 85%;"></div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label><strong>FVT Zone: 200-231 bpm</strong></label>
-                        <div class="therapy-zone" style="background: linear-gradient(to right, #28a745 0%, #ffc107 75%, #dc3545 100%);">
-                            <div class="zone-marker" style="left: 75%;"></div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            const settingsContainer = document.getElementById('therapy-settings');
-            if (settingsContainer) {
-                settingsContainer.innerHTML = `
-                    <table class="table table-sm">
-                        <tr><td>First Shock:</td><td><strong>25 J</strong></td></tr>
-                        <tr><td>Max Energy:</td><td><strong>35 J</strong></td></tr>
-                        <tr><td>ATP:</td><td><strong>Enabled</strong></td></tr>
-                    </table>
-                `;
-            }
-            
-            createLineChart('episodesChart', [{
-                label: 'Episodes',
-                labels: labels,
-                data: generateTrendData(labels.length, 0, 0.2),
-                color: '#28a745'
-            }], 'Episodes Count', 0, 5);
-            
-            const tableContainer = document.getElementById('episodes-table');
-            if (tableContainer) {
-                tableContainer.innerHTML = episodes.length > 0 ? 
-                    '<table class="table">...</table>' : 
-                    '<div class="alert alert-success">No episodes recorded</div>';
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                y: {
+                    display: true,
+                    beginAtZero: yMin === null ? true : false,
+                    min: yMin,
+                    max: yMax,
+                    title: {
+                        display: !!yAxisLabel,
+                        text: yAxisLabel,
+                        font: {
+                            size: 12,
+                            weight: '500'
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                        lineWidth: 1
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    hoverRadius: 8
+                }
             }
         }
+    };
 
-        // Render device status
-        function renderDeviceStatus() {
-            console.log('Rendering device status...');
-            const status = sessionData.device_status || {};
-            const device = sessionData.device || {};
-            const labels = generateTimeLabels(currentTimeRange);
-            
-            const batteryVoltage = parseFloat(status.battery_voltage) || 2.7;
-            const percentRemaining = parseInt(status.percent_remaining) || 85;
-            const remainingMonths = parseInt(status.remaining_months) || 19;
-            
-            createLineChart('batteryChart', [{
-                label: 'Battery Voltage',
-                labels: labels,
-                data: generateTrendData(labels.length, batteryVoltage, 0.02),
-                color: '#fd7e14'
-            }], 'Voltage (V)', 2.0, 3.0);
-            
-            const replacementDate = new Date();
-            replacementDate.setMonth(replacementDate.getMonth() + remainingMonths);
-            const replacementElement = document.getElementById('replacement-date');
-            if (replacementElement) {
-                replacementElement.textContent = replacementDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long'
-                });
-            }
-            
-            const batteryStatusContainer = document.getElementById('battery-status');
-            if (batteryStatusContainer) {
-                batteryStatusContainer.innerHTML = `
-                    <div class="battery-container">
-                        <div class="battery-fill" style="width: ${percentRemaining}%;">
-                            <span class="battery-text">${percentRemaining}%</span>
-                        </div>
-                    </div>
-                    <table class="table table-sm mt-3">
-                        <tr><td>Voltage:</td><td><strong>${batteryVoltage} V</strong></td></tr>
-                        <tr><td>Status:</td><td><span class="badge bg-success">Good</span></td></tr>
-                        <tr><td>Longevity:</td><td><strong>${remainingMonths} months</strong></td></tr>
-                    </table>
-                `;
-            }
-            
-            const deviceInfoContainer = document.getElementById('device-info');
-            if (deviceInfoContainer) {
-                deviceInfoContainer.innerHTML = `
-                    <table class="table">
-                        <tr><td>Model:</td><td>${device.model || 'N/A'}</td></tr>
-                        <tr><td>Serial:</td><td>${device.serial_number || 'N/A'}</td></tr>
-                        <tr><td>Implant Date:</td><td>${device.implant_date || 'N/A'}</td></tr>
-                        <tr><td>Last Check:</td><td>2025-08-18</td></tr>
-                    </table>
-                `;
-            }
-        }
+    charts[canvasId] = new Chart(ctx, config);
+    return charts[canvasId];
+}
 
-        // Change time range
-        function changeTimeRange(range) {
-            currentTimeRange = range;
-            
-            document.querySelectorAll('.time-controls .btn-group button').forEach(btn => {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-outline-primary');
-            });
-            
-            if (event && event.target) {
-                event.target.classList.remove('btn-outline-primary');
-                event.target.classList.add('btn-primary');
-            }
-            
-            renderLeadPerformance();
-            renderCardiacCompass();
-            renderEpisodes();
-            renderDeviceStatus();
-        }
+// Render lead performance charts
+function renderLeadPerformance() {
+    // Mock data for demonstration
+    const impedanceData = [{
+        label: 'RV Lead',
+        data: [520, 515, 510, 505, 500, 495],
+        color: '#667eea',
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    }];
+    
+    createChart('leadImpedanceChart', impedanceData, 'line', 'Impedance (Ω)', 400, 600);
+    
+    // Update threshold summary
+    document.getElementById('threshold-summary').innerHTML = `
+        <div class="mb-3">
+            <div class="d-flex justify-content-between">
+                <span><strong>RV Threshold:</strong></span>
+                <span class="badge bg-success">0.75V @ 0.4ms</span>
+            </div>
+        </div>
+        <div class="mb-3">
+            <div class="d-flex justify-content-between">
+                <span><strong>RA Threshold:</strong></span>
+                <span class="badge bg-success">0.5V @ 0.4ms</span>
+            </div>
+        </div>
+        <div class="mb-3">
+            <div class="d-flex justify-content-between">
+                <span><strong>LV Threshold:</strong></span>
+                <span class="badge bg-warning">1.2V @ 0.4ms</span>
+            </div>
+        </div>
+    `;
+}
 
-        function exportReport() {
-            alert('Export functionality would generate PDF report');
-        }
+// Render cardiac compass charts
+function renderCardiacCompass() {
+    // Mock AT/AF data
+    const atafData = [{
+        label: 'AT/AF Burden %',
+        data: [2.5, 3.1, 2.8, 3.5, 4.2, 3.8],
+        color: '#ff6b6b',
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    }];
+    
+    createChart('atafChart', atafData, 'line', 'Burden %', 0, 10);
+    
+    // Mock V-Pacing data
+    const vpacingData = [{
+        label: 'V-Pacing %',
+        data: [15, 18, 16, 20, 22, 19],
+        color: '#4facfe',
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    }];
+    
+    createChart('vpacingChart', vpacingData, 'line', 'Pacing %', 0, 50);
+    
+    // Mock Activity data
+    const activityData = [{
+        label: 'Activity Hours/Day',
+        data: [6.5, 7.2, 6.8, 7.5, 8.1, 7.8],
+        color: '#28a745',
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    }];
+    
+    createChart('activityChart', activityData, 'line', 'Hours', 0, 12);
+    
+    // Mock HRV data
+    const hrvData = [{
+        label: 'HRV (ms)',
+        data: [45, 48, 46, 50, 52, 49],
+        color: '#17a2b8',
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    }];
+    
+    createChart('hrvChart', hrvData, 'line', 'HRV (ms)', 30, 70);
+}
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOM loaded at 2025-08-18 00:05:03 UTC');
-            await waitForChart();
-            loadSessionData();
-        });
-    </script>
-</body>
-</html>
+// Render device status
+function renderDeviceStatus() {
+    // Update device info
+    const device = sessionData.device || {};
+    const status = sessionData.device_status || {};
+    
+    document.getElementById('device-info').innerHTML = `
+        <table class="table table-sm table-borderless">
+            <tr><td><strong>Model:</strong></td><td>${device.device_model || 'N/A'}</td></tr>
+            <tr><td><strong>Serial:</strong></td><td>${device.serial_number || 'N/A'}</td></tr>
+            <tr><td><strong>Firmware:</strong></td><td>v2.1.3</td></tr>
+            <tr><td><strong>Last Check:</strong></td><td>2025-08-18</td></tr>
+        </table>
+    `;
+}
+
+// Change time range
+function changeTimeRange(range) {
+    currentTimeRange = range;
+    
+    document.querySelectorAll('.time-controls .btn-group button').forEach(btn => {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline-primary');
+    });
+    
+    if (event && event.target) {
+        event.target.classList.remove('btn-outline-primary');
+        event.target.classList.add('btn-primary');
+    }
+    
+    renderLeadPerformance();
+    renderCardiacCompass();
+    renderDeviceStatus();
+}
+
+function exportReport() {
+    showNotification('Export functionality - PDF report generation coming soon', 'info');
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM loaded at 2025-08-18 00:05:03 UTC');
+    await waitForChart();
+    await loadSessionData();
+});
+</script>
+{% endblock %}

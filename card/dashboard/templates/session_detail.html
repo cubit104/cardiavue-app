@@ -182,6 +182,14 @@
     /* Enhanced nav tabs */
     .nav-tabs {
         border-bottom: 2px solid var(--border-light);
+        display: flex;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .nav-tabs .nav-item {
+        margin-bottom: -2px;
     }
     
     .nav-tabs .nav-link {
@@ -191,6 +199,10 @@
         font-weight: 500;
         padding: 12px 24px;
         transition: var(--transition-fast);
+        text-decoration: none;
+        display: block;
+        cursor: pointer;
+        background: transparent;
     }
     
     .nav-tabs .nav-link:hover {
@@ -204,6 +216,98 @@
         background: var(--bg-lighter);
         border-color: var(--primary-dark);
         border-bottom: 2px solid var(--primary-dark);
+    }
+    
+    /* Tab content */
+    .tab-content {
+        padding: 20px 0;
+    }
+    
+    .tab-pane {
+        display: none;
+    }
+    
+    .tab-pane.active {
+        display: block;
+    }
+    
+    .tab-pane.show {
+        display: block;
+    }
+    
+    /* Charts Grid Layout */
+    .charts-grid {
+        padding: 20px 0;
+    }
+    
+    .charts-grid .chart-container {
+        height: 300px;
+        background: #ffffff;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: 15px;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .charts-grid .measurement-card {
+        height: 100%;
+        min-height: 400px;
+    }
+    
+    .chart-legend {
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: 12px;
+        margin-top: 12px;
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+    
+    /* Professional medical chart styling */
+    canvas {
+        border-radius: var(--radius-sm);
+    }
+    
+    /* Tab content animations */
+    .tab-pane {
+        animation: fadeInUp 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Enhanced badges for clinical data */
+    .badge {
+        font-weight: 500;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+    }
+    
+    /* Loading state improvements */
+    .spinner-border {
+        width: 2rem;
+        height: 2rem;
+    }
+    
+    /* Responsive grid adjustments */
+    @media (max-width: 768px) {
+        .charts-grid .chart-container {
+            height: 250px;
+        }
+        
+        .charts-grid .measurement-card {
+            min-height: 350px;
+            margin-bottom: 20px;
+        }
     }
 </style>
 
@@ -263,25 +367,70 @@
 <div class="tab-content" id="clinicalTabContent">
     <!-- Lead Performance Tab -->
     <div class="tab-pane fade show active" id="lead-performance" role="tabpanel">
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="measurement-card">
-                    <h6><i class="fas fa-heartbeat me-2 text-danger"></i>Lead Impedance Trends</h6>
-                    <div class="chart-container">
-                        <canvas id="leadImpedanceChart"></canvas>
+        <!-- 2x3 Grid Layout for ICD Report Trends -->
+        <div class="charts-grid">
+            <!-- Top Row -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-battery-three-quarters me-2 text-success"></i>Battery %</h6>
+                        <div class="chart-container">
+                            <canvas id="batteryChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="battery-legend"></div>
                     </div>
-                    <div class="chart-legend" id="impedance-legend">
-                        <strong>Clinical Notes:</strong> Lead impedance values within normal ranges. No significant variations detected.
+                </div>
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-signal me-2 text-info"></i>Capture Thresholds</h6>
+                        <div class="chart-container">
+                            <canvas id="captureThresholdChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="capture-legend"></div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
-                <div class="measurement-card">
-                    <h6><i class="fas fa-tachometer-alt me-2 text-info"></i>Threshold Summary</h6>
-                    <div id="threshold-summary" class="py-4">
-                        <div class="text-center">
-                            <div class="spinner-border text-primary" role="status"></div>
+            
+            <!-- Middle Row -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-heartbeat me-2 text-danger"></i>Impedance (Multi-Lead)</h6>
+                        <div class="chart-container">
+                            <canvas id="impedanceChart"></canvas>
                         </div>
+                        <div class="chart-legend" id="impedance-legend"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-wave-square me-2 text-primary"></i>Sensing Amplitude</h6>
+                        <div class="chart-container">
+                            <canvas id="sensingChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="sensing-legend"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Row -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-percentage me-2 text-warning"></i>Pacing %</h6>
+                        <div class="chart-container">
+                            <canvas id="pacingChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="pacing-legend"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-bolt me-2 text-danger"></i>VT/VF Episodes</h6>
+                        <div class="chart-container">
+                            <canvas id="episodesChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="episodes-legend"></div>
                     </div>
                 </div>
             </div>
@@ -625,37 +774,301 @@ function createChart(canvasId, datasets, chartType = 'line', yAxisLabel = '', yM
 
 // Render lead performance charts
 function renderLeadPerformance() {
-    // Mock data for demonstration
-    const impedanceData = [{
-        label: 'RV Lead',
-        data: [520, 515, 510, 505, 500, 495],
-        color: '#667eea',
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    console.log('Rendering 2x3 grid charts...');
+    
+    // Create charts for the 2x3 grid layout
+    renderBatteryChart();
+    renderCaptureThresholdChart();
+    renderImpedanceChart();
+    renderSensingChart();
+    renderPacingChart();
+    renderEpisodesChart();
+}
+
+// Battery % Chart
+function renderBatteryChart() {
+    const batteryData = [{
+        label: 'Battery %',
+        data: [85, 82, 79, 76, 74, 71],
+        color: '#28a745',
+        labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
     }];
     
-    createChart('leadImpedanceChart', impedanceData, 'line', 'Impedance (Ω)', 400, 600);
+    if (typeof Chart !== 'undefined') {
+        createChart('batteryChart', batteryData, 'line', 'Battery %', 0, 100);
+    } else {
+        createFallbackChart('batteryChart', batteryData, 'Battery %');
+    }
     
-    // Update threshold summary
-    document.getElementById('threshold-summary').innerHTML = `
-        <div class="mb-3">
-            <div class="d-flex justify-content-between">
-                <span><strong>RV Threshold:</strong></span>
-                <span class="badge bg-success">0.75V @ 0.4ms</span>
-            </div>
-        </div>
-        <div class="mb-3">
-            <div class="d-flex justify-content-between">
-                <span><strong>RA Threshold:</strong></span>
-                <span class="badge bg-success">0.5V @ 0.4ms</span>
-            </div>
-        </div>
-        <div class="mb-3">
-            <div class="d-flex justify-content-between">
-                <span><strong>LV Threshold:</strong></span>
-                <span class="badge bg-warning">1.2V @ 0.4ms</span>
-            </div>
-        </div>
+    document.getElementById('battery-legend').innerHTML = `
+        <span style="color: #28a745;">●</span> Battery Level: <strong>71%</strong> | 
+        Status: <span class="badge bg-success">Good</span> | 
+        Est. Replacement: <strong>18 months</strong>
     `;
+}
+
+// Capture Thresholds Chart (Multi-parameter)
+function renderCaptureThresholdChart() {
+    const thresholdData = [
+        {
+            label: 'A Capture',
+            data: [0.5, 0.52, 0.48, 0.51, 0.53, 0.49],
+            color: '#007bff',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'V Capture',
+            data: [0.75, 0.78, 0.72, 0.76, 0.79, 0.73],
+            color: '#28a745',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'A Sensing',
+            data: [2.1, 2.3, 2.0, 2.2, 2.4, 2.1],
+            color: '#17a2b8',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'V Sensing',
+            data: [8.5, 8.8, 8.2, 8.6, 8.9, 8.3],
+            color: '#ffc107',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        }
+    ];
+    
+    if (typeof Chart !== 'undefined') {
+        createChart('captureThresholdChart', thresholdData, 'line', 'Threshold Values', 0, 10);
+    } else {
+        createFallbackChart('captureThresholdChart', thresholdData, 'Threshold Values');
+    }
+    
+    document.getElementById('capture-legend').innerHTML = thresholdData.map(item => 
+        `<span style="color: ${item.color};">●</span> ${item.label}: <strong>${item.data[item.data.length-1]}</strong>`
+    ).join(' | ');
+}
+
+// Multi-Lead Impedance Chart (RV, LA, RA, LV)
+function renderImpedanceChart() {
+    const impedanceData = [
+        {
+            label: 'RV Lead',
+            data: [520, 515, 510, 505, 500, 495],
+            color: '#667eea',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'LA Lead',
+            data: [480, 485, 478, 482, 479, 483],
+            color: '#f093fb',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'RA Lead',
+            data: [456, 461, 452, 458, 454, 460],
+            color: '#4facfe',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'LV Lead',
+            data: [590, 595, 587, 592, 588, 594],
+            color: '#fa709a',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        }
+    ];
+    
+    if (typeof Chart !== 'undefined') {
+        createChart('impedanceChart', impedanceData, 'line', 'Impedance (Ω)', 400, 650);
+    } else {
+        createFallbackChart('impedanceChart', impedanceData, 'Impedance (Ω)');
+    }
+    
+    document.getElementById('impedance-legend').innerHTML = impedanceData.map(item => 
+        `<span style="color: ${item.color};">●</span> ${item.label}: <strong>${item.data[item.data.length-1]}Ω</strong>`
+    ).join(' | ');
+}
+
+// Sensing Amplitude Chart
+function renderSensingChart() {
+    const sensingData = [
+        {
+            label: 'A Sensing',
+            data: [2.1, 2.3, 2.0, 2.2, 2.4, 2.1],
+            color: '#17a2b8',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'V Sensing',
+            data: [8.5, 8.8, 8.2, 8.6, 8.9, 8.3],
+            color: '#28a745',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        }
+    ];
+    
+    if (typeof Chart !== 'undefined') {
+        createChart('sensingChart', sensingData, 'line', 'Amplitude (mV)', 0, 15);
+    } else {
+        createFallbackChart('sensingChart', sensingData, 'Amplitude (mV)');
+    }
+    
+    document.getElementById('sensing-legend').innerHTML = sensingData.map(item => 
+        `<span style="color: ${item.color};">●</span> ${item.label}: <strong>${item.data[item.data.length-1]}mV</strong>`
+    ).join(' | ');
+}
+
+// Pacing % Chart
+function renderPacingChart() {
+    const pacingData = [
+        {
+            label: 'A Pacing %',
+            data: [15, 18, 16, 20, 22, 19],
+            color: '#007bff',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'V Pacing %',
+            data: [35, 38, 32, 36, 39, 34],
+            color: '#dc3545',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        }
+    ];
+    
+    if (typeof Chart !== 'undefined') {
+        createChart('pacingChart', pacingData, 'line', 'Pacing %', 0, 50);
+    } else {
+        createFallbackChart('pacingChart', pacingData, 'Pacing %');
+    }
+    
+    document.getElementById('pacing-legend').innerHTML = pacingData.map(item => 
+        `<span style="color: ${item.color};">●</span> ${item.label}: <strong>${item.data[item.data.length-1]}%</strong>`
+    ).join(' | ');
+}
+
+// VT/VF Episodes Chart
+function renderEpisodesChart() {
+    const episodesData = [
+        {
+            label: 'VT Episodes',
+            data: [0, 1, 0, 2, 1, 0],
+            color: '#ffc107',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        },
+        {
+            label: 'VF Episodes',
+            data: [0, 0, 0, 1, 0, 0],
+            color: '#dc3545',
+            labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
+        }
+    ];
+    
+    if (typeof Chart !== 'undefined') {
+        createChart('episodesChart', episodesData, 'line', 'Episode Count', 0, 5);
+    } else {
+        createFallbackChart('episodesChart', episodesData, 'Episode Count');
+    }
+    
+    document.getElementById('episodes-legend').innerHTML = episodesData.map(item => 
+        `<span style="color: ${item.color};">●</span> ${item.label}: <strong>${item.data.reduce((a,b) => a+b, 0)} total</strong>`
+    ).join(' | ');
+}
+
+// Fallback chart creation (when Chart.js is not available)
+function createFallbackChart(canvasId, datasets, yAxisLabel) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = canvas.offsetWidth * 2;
+    const height = canvas.height = canvas.offsetHeight * 2;
+    ctx.scale(2, 2);
+    
+    const padding = 40;
+    const chartWidth = width/2 - padding * 2;
+    const chartHeight = height/2 - padding * 2;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width/2, height/2);
+    
+    // Background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width/2, height/2);
+    
+    // Grid lines
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    
+    // Vertical grid lines
+    for (let i = 0; i <= 5; i++) {
+        const x = padding + (chartWidth / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, padding + chartHeight);
+        ctx.stroke();
+    }
+    
+    // Horizontal grid lines
+    for (let i = 0; i <= 4; i++) {
+        const y = padding + (chartHeight / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(padding + chartWidth, y);
+        ctx.stroke();
+    }
+    
+    // Draw data lines
+    datasets.forEach(dataset => {
+        ctx.strokeStyle = dataset.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        
+        const data = dataset.data;
+        const maxVal = Math.max(...data.concat([Math.max(...datasets.map(d => Math.max(...d.data)))]));
+        const minVal = Math.min(...data.concat([Math.min(...datasets.map(d => Math.min(...d.data)))]));
+        const range = maxVal - minVal || 1;
+        
+        data.forEach((value, index) => {
+            const x = padding + (chartWidth / (data.length - 1)) * index;
+            const y = padding + chartHeight - ((value - minVal) / range) * chartHeight;
+            
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        
+        ctx.stroke();
+        
+        // Draw points
+        ctx.fillStyle = dataset.color;
+        data.forEach((value, index) => {
+            const x = padding + (chartWidth / (data.length - 1)) * index;
+            const y = padding + chartHeight - ((value - minVal) / range) * chartHeight;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+    });
+    
+    // Axis labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    
+    // X-axis labels
+    const labels = datasets[0].labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    labels.forEach((label, index) => {
+        const x = padding + (chartWidth / (labels.length - 1)) * index;
+        ctx.fillText(label, x, height/2 - 10);
+    });
+    
+    // Y-axis label
+    ctx.save();
+    ctx.translate(15, height/4);
+    ctx.rotate(-Math.PI/2);
+    ctx.textAlign = 'center';
+    ctx.fillText(yAxisLabel, 0, 0);
+    ctx.restore();
 }
 
 // Render cardiac compass charts
@@ -745,6 +1158,210 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM loaded at 2025-08-18 00:05:03 UTC');
     await waitForChart();
     await loadSessionData();
+    
+    // Initialize tab event listeners
+    initializeTabListeners();
 });
+
+// Initialize tab event listeners
+function initializeTabListeners() {
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tabButton => {
+        tabButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Hide all tab content
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Show target content
+            const targetTab = this.getAttribute('data-bs-target');
+            const targetContent = document.querySelector(targetTab);
+            if (targetContent) {
+                targetContent.classList.add('show', 'active');
+            }
+            
+            // Load content based on tab
+            switch(targetTab) {
+                case '#parameters':
+                    loadProgrammingParameters();
+                    break;
+                case '#episodes':
+                    loadEpisodesAndTherapy();
+                    break;
+                case '#lead-performance':
+                    renderLeadPerformance();
+                    break;
+                case '#cardiac-compass':
+                    renderCardiacCompass();
+                    break;
+                case '#device-status':
+                    renderDeviceStatus();
+                    break;
+            }
+        });
+    });
+}
+
+// Load programming parameters content
+function loadProgrammingParameters() {
+    const parametersContent = document.getElementById('parameters-content');
+    
+    // Simulate loading with actual content
+    setTimeout(() => {
+        parametersContent.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-cogs me-2"></i>Pacing Parameters</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Mode:</strong></td><td>DDD</td></tr>
+                            <tr><td><strong>Lower Rate:</strong></td><td>60 bpm</td></tr>
+                            <tr><td><strong>Upper Rate:</strong></td><td>130 bpm</td></tr>
+                            <tr><td><strong>AV Delay:</strong></td><td>150 ms</td></tr>
+                            <tr><td><strong>PVARP:</strong></td><td>250 ms</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-shield-alt me-2"></i>Detection Parameters</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>VT Zone:</strong></td><td>171-200 bpm</td></tr>
+                            <tr><td><strong>VF Zone:</strong></td><td>>200 bpm</td></tr>
+                            <tr><td><strong>VT Detection:</strong></td><td>18/24 intervals</td></tr>
+                            <tr><td><strong>VF Detection:</strong></td><td>18/24 intervals</td></tr>
+                            <tr><td><strong>Stability:</strong></td><td>40 ms</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-bolt me-2"></i>Therapy Configuration</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>VT Therapy:</strong></td>
+                                <td>
+                                    <span class="badge bg-primary">ATP</span> 
+                                    <span class="badge bg-warning">15J Shock</span>
+                                    <span class="badge bg-danger">25J Shock</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>VF Therapy:</strong></td>
+                                <td>
+                                    <span class="badge bg-danger">25J Shock</span>
+                                    <span class="badge bg-danger">35J Shock</span>
+                                    <span class="badge bg-danger">35J Shock</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }, 500);
+}
+
+// Load episodes and therapy content
+function loadEpisodesAndTherapy() {
+    const episodesContent = document.getElementById('episodes-content');
+    
+    // Simulate loading with actual content
+    setTimeout(() => {
+        episodesContent.innerHTML = `
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-chart-line me-2"></i>Episode Summary (Last 6 Months)</h6>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Rate (bpm)</th>
+                                    <th>Duration</th>
+                                    <th>Therapy</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2025-04-15</td>
+                                    <td><span class="badge bg-warning">VT</span></td>
+                                    <td>185</td>
+                                    <td>12s</td>
+                                    <td>ATP</td>
+                                    <td><span class="badge bg-success">Successful</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-03-22</td>
+                                    <td><span class="badge bg-danger">VF</span></td>
+                                    <td>245</td>
+                                    <td>8s</td>
+                                    <td>25J Shock</td>
+                                    <td><span class="badge bg-success">Successful</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-02-08</td>
+                                    <td><span class="badge bg-warning">VT</span></td>
+                                    <td>178</td>
+                                    <td>15s</td>
+                                    <td>ATP</td>
+                                    <td><span class="badge bg-success">Successful</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="measurement-card">
+                        <h6><i class="fas fa-chart-pie me-2"></i>Episode Statistics</h6>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span><strong>Total Episodes:</strong></span>
+                                <span class="badge bg-info">4</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span><strong>VT Episodes:</strong></span>
+                                <span class="badge bg-warning">3</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span><strong>VF Episodes:</strong></span>
+                                <span class="badge bg-danger">1</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span><strong>ATP Success:</strong></span>
+                                <span class="badge bg-success">100%</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span><strong>Shock Success:</strong></span>
+                                <span class="badge bg-success">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }, 500);
+}
 </script>
 {% endblock %}
